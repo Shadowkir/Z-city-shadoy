@@ -12,6 +12,7 @@ local sides = {
 	["_cl"] = "cl_",
 }
 
+--new system load HUD
 if CLIENT then
 	lply = LocalPlayer()
 
