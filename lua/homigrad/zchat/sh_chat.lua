@@ -1,6 +1,16 @@
+-- ЭТО ПЕРЕДЕЛКА ЧАТА ЭТО САЛАТА, ДА ТУТ ЕСТЬ ЧУТ ЧУТ ИИ ПОТОМУ ЧТО РЕНЧ ТУПОЙ В ПРОГРАМИРОВАНИИ
 local maxLength = CreateConVar("zchat_maxmessagelength", "256", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Maximum message length allowed")
 
 if CLIENT then
+	zchat = zchat or {}
+
+	function zchat.RichText(text)
+		return {
+			__zchatRichText = true,
+			text = tostring(text or "")
+		}
+	end
+
 	local fontSize = CreateClientConVar("zchat_fontsize", 7, true, false, "Self explanatory", 3, 10)
 	local fontName = CreateClientConVar("zchat_font", "Bahnschrift", true, false, "Self explanatory, should be available to GMod")
 	local fontAA = CreateClientConVar("zchat_fontaa", 1, true, false, "Font anti-aliasing", 0, 1)
@@ -28,8 +38,6 @@ if CLIENT then
 
 		return other_alive or nil
 	end)
-
-	-- CreateChat()
 
 	hook.Add("PlayerBindPress", "ZChat", function(client, bind, pressed)
 		bind = bind:lower()
@@ -65,7 +73,7 @@ if CLIENT then
 
 		local supressed = hook.Run("OnPlayerChat", speaker, text, false, speaker:Alive(), bWhisper)
 		if !supressed then
-			chat.AddText(speaker, ": ", text)
+			chat.AddText(speaker, ": ", zchat.RichText(text))
 		end
 
 		CHAT_SPEAKER = nil
@@ -88,11 +96,13 @@ if CLIENT then
 			hg.chat:AddMessage(...)
 		end
 
-		-- log chat message to console
+		-- логи скачат
 		local text = {}
 
 		for _, v in ipairs({...}) do
-			if (istable(v) or isstring(v)) then
+			if (istable(v) and v.__zchatRichText) then
+				text[#text + 1] = v.text
+			elseif (istable(v) or isstring(v)) then
 				text[#text + 1] = v
 			elseif (isentity(v) and v:IsPlayer()) then
 				text[#text + 1] = team.GetColor(v:Team())
@@ -145,24 +155,38 @@ if CLIENT then
 		})
 	end
 
-	cvars.AddChangeCallback("zchat_fontsize", function()
+	local function RefreshChatFonts()
 		LoadFonts()
-		CreateChat()
+
+		if !IsValid(hg.chat) then return end
+
+		if IsValid(hg.chat.entry) then
+			hg.chat.entry:SetFont("zChatFont")
+		end
+
+		for _, panel in ipairs(hg.chat.entries or {}) do
+			if IsValid(panel) then
+				panel:SetMarkup(panel.text)
+			end
+		end
+
+		hg.chat:InvalidateLayout(true)
+	end
+
+	cvars.AddChangeCallback("zchat_fontsize", function()
+		RefreshChatFonts()
 	end)
 
 	cvars.AddChangeCallback("zchat_font", function()
-		LoadFonts()
-		CreateChat()
+		RefreshChatFonts()
 	end)
 
 	cvars.AddChangeCallback("zchat_fontaa", function()
-		LoadFonts()
-		CreateChat()
+		RefreshChatFonts()
 	end)
 
 	cvars.AddChangeCallback("zchat_fontweight", function()
-		LoadFonts()
-		CreateChat()
+		RefreshChatFonts()
 	end)
 
 	concommand.Add("zchat_reload", function()
@@ -204,7 +228,7 @@ if CLIENT then
 	local dead = Color(255, 0, 0)
 	hook.Add("OnPlayerChat", "ZChatDead", function(ply, text, bTeam, bDead, bWhisper)
 		if ( ply:IsPlayer() and !ply:Alive() ) then
-			chat.AddText( dead, "*DEAD* ", ghost, ply:Nick(), ghost, ": "..text )
+			chat.AddText( dead, "*DEAD* ", ghost, ply:Nick(), ghost, ": ", zchat.RichText(text) )
 			return true
 		end
 	end)
@@ -212,6 +236,17 @@ else
 	util.AddNetworkString("zChatMessage")
 	util.AddNetworkString("zChatGlobalMessage")
 	util.AddNetworkString("zChatTyping")
+
+	local customEmojiResources = {
+		""
+	}
+
+	for _, fileName in ipairs(customEmojiResources) do
+		local baseName = string.StripExtension(fileName)
+		resource.AddFile("materials/icon16/" .. fileName)
+		resource.AddFile("materials/icon16/" .. baseName .. ".vtf")
+		resource.AddFile("materials/icon16/" .. baseName .. ".vmt")
+	end
 
 	net.Receive("zChatMessage", function(len, ply)
 		local text = net.ReadString()
@@ -226,9 +261,14 @@ else
 	end)
 
 	hook.Add("PlayerSay", "ZChat", function(ply, text)
+		local otsositi = string.Trim(string.lower(text)) == "!skip"
  		local txtTbl = {text}
 		hook.Run("HG_PlayerSay", ply, txtTbl, text) // our shit gets called later
 		text = isstring(txtTbl[1]) and txtTbl[1] or text // checks to see if shit hits the ceiling
+
+		if otsositi then
+			text = "Я тупой говноед пришедший с ОТСО-СИТИ, у меня СДВГ И ПОЭТОМУ ЭТО НАДО СКИПНУТЬ!"
+		end
 
 		if text == "" then return end
 
@@ -237,7 +277,7 @@ else
 		ply.ChatWhisper = ply:Alive() and ply.ChatWhisper or false
 
 		local rf = RecipientFilter()
-		-- local checkdist = ply.ChatWhisper and 128 * 128 or 1024 * 1024
+		-- пизда моча
 		for i, plya in player.Iterator() do
 			if plya:Alive() and plya.organism and plya.organism.otrub then continue end
 			if plya:Alive() and !ply:Alive() then continue end
@@ -252,8 +292,6 @@ else
 			net.WriteString(text)
 			net.WriteBool(ply.ChatWhisper)
 		net.Send(rf)
-
-		-- log chat message to console
 		local textConsole = {}
 
 		textConsole[#textConsole + 1] = ply:GetPlayerColor():ToColor()
