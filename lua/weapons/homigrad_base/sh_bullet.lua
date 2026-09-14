@@ -79,6 +79,11 @@ local function callbackBullet(self, tr, dmg, force, bullet, penetration)
 			Penetrated = penetration
 		end
 
+		if CLIENT and Penetrated then
+			hg.addBulletHoleEffect(hitPos)
+			hg.addBulletHoleEffect(hit.HitPos)
+		end
+
 		if Penetrated then
 			util.Decal("Impact.Concrete",SearchPos + dir*5, SearchPos - dir*15)
 			timer.Simple(0.15,function()
@@ -128,8 +133,6 @@ local function callbackBullet(self, tr, dmg, force, bullet, penetration)
 			self.bullet = tBullet
 			
 			self:FireLuaBullets( tBullet )
-				
-
 
 			local tr = util.TraceLine( {
 				start = SearchPos + dir,
