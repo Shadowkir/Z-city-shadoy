@@ -21,9 +21,9 @@ SWEP.SuicideSound = "player/flesh/flesh_bullet_impact_03.wav"
 SWEP.CanSuicide = true
 SWEP.SuicideNoLH = true
 SWEP.SuicidePunchAng = Angle(5, -15, 0)
-SWEP.WorldModel = "models/weapons/zcity/w_hammer.mdl"
+SWEP.WorldModel = "models/weapons/w_jjife_t.mdl"
 SWEP.WorldModelReal = "models/weapons/tfa_nmrih/v_me_hatchet.mdl"
-SWEP.WorldModelExchange = "models/weapons/zcity/w_hammer.mdl"
+SWEP.WorldModelExchange = "models/weapons/w_jjife_t.mdl"
 SWEP.DontChangeDropped = false
 SWEP.ViewModel = ""
 SWEP.HoldType = "melee"
@@ -86,7 +86,7 @@ SWEP.StaminaPrimary = 25
 
 local setmodevpang = Angle(0, 0, 5)
 
-local weppos1, wepang1, weppos2, wepang2 = Vector(-2, 4.5, -11), Angle(14, -90, 90), Vector(0.7, -0.5, -12), Angle(-15, 90, 96)
+local weppos1, wepang1, weppos2, wepang2 = Vector(0, 4, -3), Angle(-5, -90, 0), Vector(-0.5, -3, -6.5), Angle(-55, 90, 0)
 function SWEP:ThinkAdd()
 	local ply = self:GetOwner()
 	if SERVER and ply.suiciding then
