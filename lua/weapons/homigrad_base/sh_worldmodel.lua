@@ -722,7 +722,6 @@ function SWEP:WorldModel_Transform_Holstered()
 
 		local style = 1
 		
-		-- Проверяем, является ли оружие пистолетом или принудительно требует 2-й стиль
 		local isPistol = (self.IsPistolHoldType and self:IsPistolHoldType()) 
 			or self.weaponInvCategory == 2 
 			or self.HoldType == "revolver" 
@@ -730,7 +729,7 @@ function SWEP:WorldModel_Transform_Holstered()
 			or self.ForceHolsterStyle == 2
 
 		if isPistol or self.ForceHolsterStyle == 2 then
-			style = 2 -- Для пистолетов всегда 2 вариант (бедро/разгрузка)
+			style = 2
 		elseif IsValid(realPly) and realPly.GetNWInt then
 			style = realPly:GetNWInt("hg_holster_style", 1)
 		end
