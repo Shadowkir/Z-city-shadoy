@@ -55,11 +55,7 @@ SWEP.AnimList = {
     -- self:PlayAnim( anim,time,cycling,callback,reverse,sendtoclient )
 	["deploy"] = { "draw", 1, false },
     ["attack"] = { "throw", 0.6, false, false, function(self)
-
 		if CLIENT then return end
-		--local tr = self:GetEyeTrace()
-		--self:Tie(tr)
-		
 		self:Throw(1200, self.SpoonTime or CurTime(),nil,Vector(2,4,0),Angle(-40,0,0))
 		self.InThrowing = false
 		self.ReadyToThrow = false
@@ -81,8 +77,6 @@ SWEP.AnimList = {
 		end)
 	end, 0.65 },
 	["attack2"] = { "throw", 0.6, false, false, function(self)
-		--local tr = self:GetEyeTrace()
-		--self:Tie(tr)
 		if CLIENT then return end
 		self:Throw(600, self.SpoonTime or CurTime(),nil,Vector(0,4,-6),Angle(40,0,0))
 		self.InThrowing = false
@@ -108,16 +102,17 @@ SWEP.AnimList = {
 	end, 0.6 },
 	["pullbackhigh"] = {"drawbackhigh", 0.4, false, false, function(self) 
 		self:SetShowPin(false)
-		--self:PlayAnim("attack")
 		self.ReadyToThrow = true
 	end,0.8},
 	["pullbacklow"] = {"drawbacklow", 0.4, false, false, function(self) 
-		--self:PlayAnim("attack2")
 		self:SetShowPin(false)
 		self.IsLowThrow = true
 		self.ReadyToThrow = true
 	end,0.8},
-	["idle"] = {"draw", 1, false,false,function(self)
+	["idle"] = {"draw", 1, false, false, function(self) end},
+
+	["trapplace"] = {"drawbacklow", 1.8, false, false, function(self)
+		self.ReadyToTrap = true
 	end}
 }
 
@@ -144,7 +139,7 @@ SWEP.AnimsEvents = {
 
 SWEP.HoldPos = Vector(-8,0,0)
 SWEP.HoldAng = Angle(0,0,0)
-SWEP.NoTrap = true
+SWEP.NoTrap = false
 
 SWEP.ViewBobCamBase = "ValveBiped.Bip01_R_UpperArm"
 SWEP.ViewBobCamBone = "ValveBiped.Bip01_R_Hand"
