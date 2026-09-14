@@ -2,6 +2,12 @@ function hg.GetCurrentArmor(ply)
 	return ply:GetNetVar("Armor",{})
 end
 
+local function HasHeadlamp(ply)
+	if not IsValid(ply) then return false end
+	local armors = ply.armors or (ply.GetNetVar and ply:GetNetVar("Armor", {})) or {}
+	return armors["headlamp"] == "hg_headlamp"
+end
+
 if CLIENT then
 	local whitelist = {
 		weapon_physgun = true,
@@ -133,7 +139,8 @@ if CLIENT then
 		
 		for placement, armor in pairs(armors) do
 			if placement == "torso" and blVestmodels[ply:GetModel()] then continue end
-			local armorData = hg.armor[placement][armor]
+			local armorData = hg.armor[placement] and hg.armor[placement][armor]
+			if not armorData then continue end
 
 			if armorData["model"] == "" then continue end
 
@@ -609,6 +616,72 @@ if CLIENT then
 				RunConsoleCommand("hg_enable_nvg")
 			end, ply:GetNWBool("NVG_Enabled", false) and "Disable NVG" or "Enable NVG"}
 			hg.radialOptions[#hg.radialOptions + 1] = tbl
+		end
+	end)
+
+	hook.Add("radialOptions", "hg_headlamp_radial", function()
+		local ply = LocalPlayer()
+		if not HasHeadlamp(ply) then return end
+		if not ply:Alive() then return end
+		local organism = ply.organism or {}
+		if organism.otrub then return end
+
+		hg.radialOptions = hg.radialOptions or {}
+		local tbl = {
+			function(mouseClick)
+				RunConsoleCommand("hg_toggle_headlamp")
+			end,
+			ply:GetNWBool("Headlamp_Enabled", false) and "Disable Headlamp" or "Enable Headlamp"
+		}
+		hg.radialOptions[#hg.radialOptions + 1] = tbl
+	end)
+
+	local flashlightTex = Material("effects/flashlight/soft")
+	local activeLamps = {}
+
+	local function RemoveLamp(ply)
+		local lamp = activeLamps[ply]
+		if IsValid(lamp) then
+			lamp:Remove()
+		end
+		activeLamps[ply] = nil
+	end
+
+	local function IsHeadlampLit(ply)
+		return HasHeadlamp(ply) and ply:Alive() and ply:GetNWBool("Headlamp_Enabled", false)
+	end
+
+	hook.Add("Think", "hg_headlamp_light_think", function()
+		for _, ply in ipairs(player.GetAll()) do
+			if IsHeadlampLit(ply) then
+				local lamp = activeLamps[ply]
+				if not IsValid(lamp) then
+					lamp = ProjectedTexture()
+					lamp:SetTexture(flashlightTex:GetTexture("$basetexture"))
+					lamp:SetFarZ(1500)
+					lamp:SetHorizontalFOV(55)
+					lamp:SetVerticalFOV(55)
+					lamp:SetConstantAttenuation(1)
+					lamp:SetLinearAttenuation(50)
+					lamp:SetEnableShadows(false)
+					activeLamps[ply] = lamp
+				end
+
+				local pos, ang = ply:EyePos(), ply:EyeAngles()
+				lamp:SetPos(pos + ang:Forward() * 4)
+				lamp:SetAngles(ang)
+				lamp:Update()
+			else
+				if activeLamps[ply] then
+					RemoveLamp(ply)
+				end
+			end
+		end
+	end)
+
+	hook.Add("EntityRemoved", "hg_headlamp_light_cleanup", function(ent)
+		if activeLamps[ent] then
+			RemoveLamp(ent)
 		end
 	end)
 end

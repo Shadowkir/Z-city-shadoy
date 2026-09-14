@@ -556,6 +556,22 @@ hg.armor.ears = {
 	}
 }
 
+hg.armor.headlamp = {
+	["hg_headlamp"] = {
+		"headlamp",
+		"models/runaway911/props/item/flashlight.mdl",
+		Vector(0, 0, 0),
+		Angle(0, 0, 0),
+		protection = 0,
+		bone = "ValveBiped.Bip01_Head1",
+		model = "",
+		norender = true,
+		surfaceprop = 67,
+		mass = 0.3,
+		ScrappersSlot = "Armor",
+	}
+}
+
 local function DrawNoise(amt, alpha)
 	local W, H = ScrW(), ScrH()
 
@@ -785,6 +801,7 @@ local armorNames = {
 	["ego_equalizer"] = "[HE] Equalizer",
 	["helmet6"] = "SWAT Balistic Helmet",
 	["gordon_helmet"] = "HEV Suit Helmet",
+	["hg_headlamp"] = "Headlamp",
 }
 hg.armorNames = armorNames
 local armorIcons = {
@@ -809,6 +826,7 @@ local armorIcons = {
 	["helmet5"] = "entities/ent_jack_gmod_ezarmor_achhcblack.png",
 	["vest8"] = "vgui/icons/armor01.png",
 	["helmet6"] = "vgui/icons/helmet.png",
+	["hg_headlamp"] = "vgui/hud/hmcd_flash",
 }
 hg.armorIcons = armorIcons
 
@@ -875,6 +893,7 @@ local stringToNum = {
 	["torso"] = 1,
 	["head"] = 2,
 	["face"] = 3,
+	["headlamp"] = 4,
 }
 
 function hg.GetArmorPlacementNum(armor)
