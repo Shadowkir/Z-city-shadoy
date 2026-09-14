@@ -12,7 +12,6 @@ local sides = {
 	["_cl"] = "cl_",
 }
 
---[[new system load HUD
 if CLIENT then
 	lply = LocalPlayer()
 
@@ -22,7 +21,7 @@ if CLIENT then
 			hook.Remove("Think", "ZCity_Init_LPlayer")
 		end
 	end)
-end]]
+end
 
 local function AddFile(File, dir)
 	local fileSide = string.lower(string.Left(File, 3))
