@@ -1551,26 +1551,6 @@ duplicator.Allow( "homigrad_base" )
 		end
 	end)
 --//
-
---\\ Fireworks effects? why so many, we use only one lol
-    --Firework trails
-    game.AddParticles( "particles/gf2_trails_firework_rocket_01.pcf") 
-    
-    PrecacheParticleSystem("gf2_firework_trail_main")
-    --Firework Large Explosions
-    game.AddParticles( "particles/gf2_large_rocket_01.pcf" )
-    game.AddParticles( "particles/gf2_large_rocket_02.pcf" )
-    game.AddParticles( "particles/gf2_large_rocket_03.pcf" )
-    game.AddParticles( "particles/gf2_large_rocket_04.pcf" )
-    game.AddParticles( "particles/gf2_large_rocket_05.pcf" )
-    game.AddParticles( "particles/gf2_large_rocket_06.pcf" )
-    
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_01" )
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_02" )
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_03" )
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_04" )
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_05" )
-    PrecacheParticleSystem( "gf2_rocket_large_explosion_06" )
     
     --Battery stuff
     game.AddParticles( "particles/gf2_battery_generals.pcf" ) 
@@ -1619,9 +1599,6 @@ duplicator.Allow( "homigrad_base" )
     game.AddParticles( "particles/gf2_romancandle_01_effect.pcf" )
     game.AddParticles( "particles/gf2_romancandle_02_effect.pcf" )
     game.AddParticles( "particles/gf2_romancandle_03_effect.pcf" )
-    
-    --Small Fireworks
-    game.AddParticles( "particles/gf2_firework_small_01.pcf" )
 --//
 
 --\\ Explosion Trace
