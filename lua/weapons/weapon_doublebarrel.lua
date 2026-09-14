@@ -52,6 +52,10 @@ SWEP.WeaponEyeAngles = Angle(0,0,0)
 SWEP.RHandPos = Vector(-15, -2, 4)
 SWEP.LHandPos = Vector(-15, -2, 4)
 
+SWEP.holsteredBone     = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredPos      = Vector(10, 8, -6)
+SWEP.holsteredAng      = Angle(220, 0, 180)
+
 SWEP.IsPistol = false
 SWEP.podkid = 0.5
 SWEP.punchmul = 4

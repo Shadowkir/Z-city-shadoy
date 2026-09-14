@@ -112,6 +112,10 @@ SWEP.attAng = Angle(0.05, -0.6, 0)
 SWEP.lengthSub = 20
 SWEP.DistSound = "toz_shotgun/toz_dist.wav"
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-6, -4, -15)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(3, 8, -12)
 SWEP.holsteredAng = Angle(210, 0, 180)

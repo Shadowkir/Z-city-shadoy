@@ -104,6 +104,15 @@ SWEP.attAng = Angle(0, -0.2, 0)
 SWEP.lengthSub = 20
 SWEP.handsAng = Angle(0, -1, 0)
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-8, -3, 1)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
+SWEP.holsteredBone     = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredPos      = Vector(15, 8, -6)
+SWEP.holsteredAng      = Angle(220, 0, 180)
+
+
 --local to head
 SWEP.RHPos = Vector(1,-6.2,4.2)
 SWEP.RHAng = Angle(0,-10,90)

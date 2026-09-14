@@ -23,6 +23,9 @@ SWEP.FakeEjectBrassATT = "2"
 SWEP.CanEpicRun = true
 SWEP.EpicRunPos = Vector(2,10,2)
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-4, -3, -5)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
 
 SWEP.FakeViewBobBone = "CAM_Homefield"
 SWEP.FakeReloadSounds = {

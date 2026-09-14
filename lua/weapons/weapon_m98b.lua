@@ -173,6 +173,10 @@ function SWEP:AnimationPostPost()
 	end
 end
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-8, -3, -15)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(2, 8, -12)
 SWEP.holsteredAng = Angle(210, 0, 180)

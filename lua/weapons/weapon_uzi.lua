@@ -74,8 +74,12 @@ SWEP.DistSound = "mp5k/mp5k_dist.wav"
 SWEP.AnimShootMul = 0.5
 SWEP.AnimShootHandMul = 0.01
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(2, -3, -1)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
-SWEP.holsteredPos = Vector(4, 8, -4)
+SWEP.holsteredPos = Vector(3, 8, -2)
 SWEP.holsteredAng = Angle(210, 0, 180)
 
 --local to head

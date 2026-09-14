@@ -10,6 +10,15 @@ function SWEP:ShouldUseFakeModel()
 	return self.WorldModelFake// and IsValid(self:GetOwner())
 end
 
+if SERVER then
+	concommand.Add("hg_holster", function(ply)
+		if not IsValid(ply) then return end
+		local cur = ply:GetNWInt("hg_holster_style", 1)
+		local nxt = (cur == 1 and 2) or 1
+		ply:SetNWInt("hg_holster_style", nxt)
+	end)
+end
+
 SWEP.weaponAng = Angle(0, 0, 0)
 local angZero = Angle(0, 0, 0)
 local math_max, math_Clamp = math.max, math.Clamp
@@ -677,6 +686,10 @@ SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(5, 8, -4)
 SWEP.holsteredAng = Angle(210, 0, 180)
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos = Vector(-8, -3.8, -3)
+SWEP.holsteredBackAng = Angle(0, 0, 0)
+
 SWEP.addAngle = Angle(0, 0, 0)
 local addAngle = Angle(0, 0, 0)
 local addHolsterPos = Vector(0, 1, 0)
@@ -701,9 +714,28 @@ function SWEP:WorldModel_Transform_Holstered()
 		--local bone = noSling and noSlingBone or self.holsteredBone
 		--local pos = noSling and noSlingPos or self.holsteredPos
 		--local ang = noSling and noSlingAng or self.holsteredAng
-		local bone = self.holsteredBone
-		local pos = self.holsteredPos
-		local ang = self.holsteredAng
+
+		local realPly = owner
+		if not IsValid(realPly) or not realPly:IsPlayer() then
+			realPly = ent.Player or ent:GetNWEntity("player") or (IsValid(ent:GetOwner()) and ent:GetOwner():IsPlayer() and ent:GetOwner()) or nil
+		end
+
+		local style = 1
+		if IsValid(realPly) and realPly.GetNWInt then
+			style = realPly:GetNWInt("hg_holster_style", 1)
+		end
+		if style ~= 2 then style = 1 end
+
+		local bone, pos, ang
+		if style == 1 then
+			bone = self.holsteredBackBone or "ValveBiped.Bip01_Spine2"
+			pos = self.holsteredBackPos or Vector(-8, -3.8, -3)
+			ang = self.holsteredBackAng or Angle(0, 0, 0)
+		else
+			bone = self.holsteredBone or "ValveBiped.Bip01_Spine2"
+			pos = self.holsteredPos or Vector(5, 8, -4)
+			ang = self.holsteredAng or Angle(210, 0, 180)
+		end
 
 		local matrix = ent:GetBoneMatrix(ent:LookupBone(bone))
 		if not matrix then return end
@@ -892,5 +924,3 @@ end)
 function SWEP:ShouldDrawViewModel()
 	return false
 end
-
-

@@ -16,6 +16,7 @@ SWEP.FakeAng = Angle(0, 0, 0)
 SWEP.AttachmentPos = Vector(0,0,0)
 SWEP.AttachmentAng = Angle(0,0,90)
 
+SWEP.shouldntDrawHolstered = true
 
 SWEP.FakeAttachment = "silencer"
 
@@ -152,6 +153,11 @@ SWEP.WorldAng = Angle(0, 0, 0)
 SWEP.UseCustomWorldModel = true
 SWEP.lengthSub = 20
 SWEP.DistSound = "m9/m9_dist.wav"
+
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-12, -3, -4)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 
 SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(4, 8, -10)
