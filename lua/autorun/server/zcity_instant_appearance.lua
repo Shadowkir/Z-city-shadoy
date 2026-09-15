@@ -151,6 +151,4 @@ hook.Add("Initialize", "ZCity_InstantAppearance_Init", function()
 
         APmodule.ForceApplyAppearance(client, checked, noModelChange)
     end)
-
-    print("[Z-City] Instant Appearance Apply loaded (v3)!")
 end)
