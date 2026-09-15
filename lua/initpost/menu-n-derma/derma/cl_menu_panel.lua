@@ -219,9 +219,11 @@ local gradient_r = surface.GetTextureID("vgui/gradient-u")
 local gradient_l = surface.GetTextureID("vgui/gradient-l")
 
 local clr_1 = Color(240, 240, 240, 0)
+local clr_dark_bg = Color(0, 0, 0, 190)
+
 function PANEL:Paint(w,h)
-    draw.RoundedBox( 0, 0, 0, w, h, self.ColorBG )
     hg.DrawBlur(self, 5)
+    draw.RoundedBox( 0, 0, 0, w, h, clr_dark_bg )
     surface.SetDrawColor( self.ColorBG )
     surface.SetTexture( gradient_l )
     surface.DrawTexturedRect(0,0,w,h)
