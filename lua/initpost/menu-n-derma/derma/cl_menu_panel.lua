@@ -70,9 +70,6 @@ local Selects = {
         
     end,
     },
-    {Title = "Achievements", Func = function(luaMenu,pp) 
-        hg.DrawAchievmentsMenu(pp)
-    end},
     {Title = "Settings", Func = function(luaMenu,pp) 
         hg.DrawSettings(pp) 
     end},
@@ -211,7 +208,7 @@ function PANEL:Init()
     zteam:DockMargin(ScreenScale(10), 0, 0, 0)
     zteam:SetFont("ZCity_Tiny")
     zteam:SetTextColor(clr_gray)
-    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko")
+    zteam:SetText("Authors: uzelezz, Sadsalat, \nMr.Point, Zac90, Deka, Mannytko, shadowkir")
     zteam:SetContentAlignment(4)
     zteam:SizeToContents()
 end
