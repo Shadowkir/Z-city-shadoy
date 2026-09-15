@@ -26,6 +26,10 @@ function SWEP:ClearAttachments()
 		end
 	end
 
+	if SERVER and hg_random_atts:GetBool() then
+		self:GenerateRandomAttachments()
+	end
+
 	if SERVER then timer.Simple(0.2, function() self:SetNetVar("attachments",self.attachments) end) end
 	self:CallOnRemove("removeAtt", function()
 		self.attachments = nil
@@ -39,6 +43,77 @@ function SWEP:ClearAttachments()
 	end)
 
 	return self.attachments
+end
+
+function SWEP:GenerateRandomAttachments()
+	if not SERVER then return end
+	if not hg_random_atts:GetBool() then return end
+	if not self.availableAttachments then return end
+
+	local wepClass = self:GetClass()
+	local slots = {"sight", "barrel", "grip", "underbarrel", "magwell"}
+
+	for _, placement in ipairs(slots) do
+		local slotData = self.availableAttachments[placement]
+		if not slotData then continue end
+		if slotData.cannotremove then continue end --хз конечно хуйня но да
+
+		local cur = self.attachments[placement]
+		local isAlreadyEquipped = cur and istable(cur) and cur[1] and cur[1] ~= "empty" and cur[1] ~= ""
+
+		if isAlreadyEquipped and placement ~= "sight" then
+			continue
+		end
+
+		local pool = {}
+
+		for k, v in pairs(slotData) do
+			local attName = isstring(k) and k or (istable(v) and v[1])
+			if attName and attName ~= "empty" and not string.find(attName, "0") then
+				if hg.attachments[placement] and hg.attachments[placement][attName] then
+					table.insert(pool, attName)
+				end
+			end
+		end
+
+		local wepMount = slotData.mountType
+		if wepMount and hg.attachments[placement] then
+			for attName, attData in pairs(hg.attachments[placement]) do
+				if attData.valid and not string.find(attName, "0") and attName ~= "empty" then
+					local attMount = attData.mountType
+					if attMount then
+						local fits = false
+						if istable(wepMount) then
+							fits = table.HasValue(wepMount, attMount)
+						else
+							fits = (wepMount == attMount)
+						end
+
+						if fits and not table.HasValue(pool, attName) then
+							table.insert(pool, attName)
+						end
+					end
+				end
+			end
+		end
+
+		if #pool > 0 then
+			local chosenAtt = pool[math.random(#pool)]
+			if isAlreadyEquipped and #pool > 1 and cur[1] == chosenAtt then
+				table.RemoveByValue(pool, chosenAtt)
+				chosenAtt = pool[math.random(#pool)]
+			end
+
+			hg.SetAttachment(self.attachments, chosenAtt, wepClass)
+
+			if self.availableAttachments.mount then
+				local attData = hg.attachments[placement] and hg.attachments[placement][chosenAtt]
+				if attData and attData.mountType and self.availableAttachments.mount[attData.mountType] then
+					self.attachments.mount = self.availableAttachments.mount[attData.mountType]
+				end
+			end
+		end
+	end
 end
 
 function hg.ClearAttachments(wep)
