@@ -1,7 +1,7 @@
 SWEP.Base = "homigrad_base"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
-SWEP.PrintName = " SG 552 Commando"
+SWEP.PrintName = "SG 552 Commando"
 SWEP.Author = "Swiss Arms AG"
 SWEP.Instructions = "Automatic rifle chambered in 5.56×45 mm\n\nRate of fire 700 rounds per minute"
 SWEP.Category = "Weapons - Assault Rifles"
