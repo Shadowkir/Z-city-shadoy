@@ -1,5 +1,6 @@
---; Haus in Neu Berlin
+--; Haus in Neu Berlin (Fixed & Advanced Edition)
 
+AddCSLuaFile()
 
 local function ScreenGrab(ply, target, file_name)
 	ply.ScreenGrabTime = CurTime() + 60
@@ -8,15 +9,30 @@ local function ScreenGrab(ply, target, file_name)
 	target.sg = ply
 	ply.sg = target
 	target.ZNetLoad_Immunity = true
-	
-	net.Start("bScreenGrabStart")
-	net.WriteEntity(ply)
+
+	-- Динамический контрольный пиксель
+	target.SG_PixelX = math.random(5, 30)
+	target.SG_PixelY = math.random(5, 30)
+	target.SG_PixelR = math.random(100, 240)
+	target.SG_PixelG = math.random(100, 240)
+	target.SG_PixelB = math.random(100, 240)
+	target.SG_ReqTime = CurTime()
+
+	net.Start("bScreenGrabStart_Secure")
+		net.WriteUInt(target.SG_PixelX, 16)
+		net.WriteUInt(target.SG_PixelY, 16)
+		net.WriteUInt(target.SG_PixelR, 8)
+		net.WriteUInt(target.SG_PixelG, 8)
+		net.WriteUInt(target.SG_PixelB, 8)
 	net.Send(target)
 
-	ply:PrintMessage(HUD_PRINTTALK, "Starting screengrab on: " .. target:Nick())
+	ply:PrintMessage(HUD_PRINTTALK, "[Скринграб] Запрос отправлен игроку: " .. target:Nick() .. ". Ожидание кадра...")
 end
 
-if(SERVER)then
+--------------------------------------------------------------------------------
+-- SERVER
+--------------------------------------------------------------------------------
+if SERVER then
 	ZScreenGrab = ZScreenGrab or {}
 
 	local NWStrings = {
@@ -27,581 +43,448 @@ if(SERVER)then
 		"ScreengrabSendPart",
 		"SendPartBack",
 		"ScreengrabFinished",
-		-- "rtxappend",
-		-- "rtxappend2",
 		"Progress",
-		"ScreengrabInterrupted"
+		"ScreengrabInterrupted",
+		"bScreenGrabStop",
+		"bScreenGrabFailed",
+		"bScreenGrabStart",
+		"bScreenGrabStart_Secure",
+		"bScreengrabSendPart",
+		"bSendPartBack",
+		"ZScreenGrabAntiESPToggle",
+		"ZAntiESPRequest"
 	}
-	for k, v in next, NWStrings do
-		util.AddNetworkString( v )
+	for _, v in ipairs(NWStrings) do
+		util.AddNetworkString(v)
 	end
-	
-	local meta = FindMetaTable( "Player" )
-	
+
+	local meta = FindMetaTable("Player")
 	function meta:CanScreengrab()
 		return self:IsAdmin()
 	end
-	
-	util.AddNetworkString( "bScreenGrabStop" )
-	util.AddNetworkString( "bScreenGrabFailed" )
-	util.AddNetworkString( "bScreenGrabStart" )
-	util.AddNetworkString( "bScreengrabSendPart" )
-	util.AddNetworkString( "bSendPartBack" )
-	util.AddNetworkString("ZScreenGrabAntiESPToggle")
-	util.AddNetworkString("ZAntiESPRequest")
 
 	function ZScreenGrab.ToggleAntiESPForPlayer(ply, state)
 		ply.ZScreenGrab_AntiESP_Enabled = state
-		
+
 		net.Start("ZScreenGrabAntiESPToggle")
 			net.WriteBool(state)
 		net.Send(ply)
-		
-		if(DOG and DOG.ACheat)then
+
+		if DOG and DOG.ACheat then
 			DOG.ACheat.SetAntiESPList(ply:SteamID(), state)
 			DOG.SendAntiESPListChangeToAdmins(ply:SteamID(), state)
 		end
 	end
 
-	net.Receive( "ScreengrabInitCallback", function( _, ply )
-		local tosend = net.ReadEntity()
-		local parts = net.ReadUInt( 32 )
-		local len = net.ReadUInt( 32 )
+	net.Receive("ScreengrabInitCallback", function(_, ply)
+		local parts = net.ReadUInt(32)
+		local len = net.ReadUInt(32)
 		local time = net.ReadFloat()
+		local cheatAlert = net.ReadString()
+
+		-- Сервер берет админа напрямую из своей памяти, а не ждет от клиента
+		local adminPly = ply.ScreenGrabber or ply.sg
+		if not IsValid(adminPly) then return end
+
+		local delay = CurTime() - (ply.SG_ReqTime or CurTime())
+		if delay > 0.85 then
+			adminPly:PrintMessage(HUD_PRINTTALK, "[ВНИМАНИЕ] Игрок " .. ply:Nick() .. " задержал скриншот на " .. math.Round(delay, 2) .. "с! (Возможен Anti-Screengrab)")
+		end
+
+		if cheatAlert ~= "" then
+			adminPly:PrintMessage(HUD_PRINTTALK, "[ОБНАРУЖЕН ЧИТ] У " .. ply:Nick() .. " найдены следы: " .. cheatAlert)
+		end
+
 		ply.parts = parts
 		ply.data = {}
 		ply.IsSending = true
-		net.Start( "ScreengrabConfirmation" )
-			net.WriteUInt( parts, 32 )
-			net.WriteUInt( len, 32 )
-			net.WriteFloat( time )
-			net.WriteEntity( ply )
-			net.WriteString( ply.ScreenGrab_FileName or "" )
-		net.Send( tosend )
-	end )
-	
-	net.Receive( "ZScreengrabRequest", function( len, ply )
+
+		net.Start("ScreengrabConfirmation")
+			net.WriteUInt(parts, 32)
+			net.WriteUInt(len, 32)
+			net.WriteFloat(time)
+			net.WriteEntity(ply)
+			net.WriteString(ply.ScreenGrab_FileName or "")
+		net.Send(adminPly)
+	end)
+
+	net.Receive("ZScreengrabRequest", function(len, ply)
 		local targ_name = net.ReadString()
 		local file_name = net.ReadString()
-		
-		if !ply:IsAdmin() then return end
+
+		if not ply:IsAdmin() then return end
 		local target, err = ULib.getUser(targ_name)
 
-		if !target then
-			if(err)then
-				ply:ChatPrint(err)
-			else
-				ply:ChatPrint("Не найден игрок")
-			end
-			
+		if not target then
+			ply:ChatPrint(err or "Не найден игрок")
 			return
 		end
 
 		ScreenGrab(ply, target, file_name)
 	end)
-	
-	net.Receive("ZAntiESPRequest", function( len, ply )
+
+	net.Receive("ZAntiESPRequest", function(len, ply)
 		local targ_name = net.ReadString()
 		local state = net.ReadBool()
-		
-		if !ply:IsAdmin() then return end
+
+		if not ply:IsAdmin() then return end
 		local target, err = ULib.getUser(targ_name)
 
-		if !target then
-			if(err)then
-				ply:ChatPrint(err)
-			else
-				ply:ChatPrint("Не найден игрок")
-			end
-			
+		if not target then
+			ply:ChatPrint(err or "Не найден игрок")
 			return
 		end
 
 		ZScreenGrab.ToggleAntiESPForPlayer(target, state)
 	end)
-	
-	net.Receive( "ScreengrabFinished", function( _, ply )
+
+	net.Receive("ScreengrabFinished", function(_, ply)
 		local _ply = ply.sg
-		_ply.parts = nil
-		_ply.data = nil
-		ply.parts = nil
-		ply.data = nil
-		_ply.sg = nil
-		ply.sg = nil
-		ply.isgrabbing = nil
-		_ply.isgrabbing = nil
-		_ply.ZNetLoad_Immunity = false
-		-- ply:rtxappend( sg.green, "Finished" )
-	end )
-
-	net.Receive( "bScreengrabSendPart", function( len, ply )
-		local sendto = ply.sg
-		local len = net.ReadUInt( 32 )
-		local data = net.ReadData( len )
-		
-		if not ply.data then
-			ply.data = {}
-			ply.data[ 1 ] = data
-			--sendto:rtxappend( sg.blue, "Received 1st part" )
-		else
-			local num = #( ply.data ) + 1
-			ply.data[ num ] = data
-			--sendto:rtxappend( sg.blue, "Received " .. num .. STNDRD( num ) .. " part" )
-		end
-		
-		if #( ply.data ) == ply.parts then
-			ply.IsSending = nil
-			--sendto:rtxappend( sg.green, "Preparing to send data [" .. ply.parts .. " parts]" )
-			local i = 1
-			
-			timer.Create( "SendDataBack", 0.1, ply.parts, function()
-				net.Start( "bSendPartBack" )
-					local x = ply.data[ i ]:len()
-					net.WriteUInt( x, 32 )
-					net.WriteData( ply.data[ i ], x )
-				net.Send( sendto )
-				
-				i = i + 1
-			end )
-		end
-	end )
-	 
-	net.Receive( "bScreenGrabFailed", function( len, ply )
-		if !IsValid( ply.ScreenGrabber ) then return end
-	 
-		local str = "Ошибка скринграба у " .. ply:Nick() .. ". " .. net.ReadString()
-		
-		ply.ScreenGrabber:PrintMessage(HUD_PRINTTALK, str)
-		-- ply.ScreenGrabber = nil --; Вернуть когда нужно
-	end )
-	 
-	 
-	 
-	hook.Add( "PlayerSay", "ScreenGrabChat", function( ply, text )
-		if !ply:IsAdmin() then return end
-		text = string.Explode( " ", string.lower( text ) )
-	 
-		if text[1] == "!screengrab" then
-			local target, err = ULib.getUser( text[2] )
-	 
-			if !target then
-				if(err)then
-					ply:ChatPrint(err)
-				else
-					ply:ChatPrint("Не найден игрок")
-				end
-				
-				return
-			end
-			
-			timer.Simple(1.2, function()
-				ScreenGrab(ply, target, text[3])
-			end)
-
-			return ""
-		end
-	end )
-	
-	hook.Add( "PlayerDisconnected", "ScreengrabInterrupt", function( ply )
-		if ply.IsSending then
-			local _ply = ply.sg
+		if IsValid(_ply) then
 			_ply.parts = nil
 			_ply.data = nil
-			ply.parts = nil
-			ply.data = nil
 			_ply.sg = nil
-			ply.sg = nil
-			ply.isgrabbing = nil
 			_ply.isgrabbing = nil
-			_ply:rtxappend( sg.red, "Target disconnected before their data finished sending" )
-			net.Start( "ScreengrabInterrupted" )
-			net.Send( _ply )
+			_ply.ZNetLoad_Immunity = false
 		end
-	end )
+		ply.parts = nil
+		ply.data = nil
+		ply.sg = nil
+		ply.isgrabbing = nil
+	end)
+
+	net.Receive("bScreengrabSendPart", function(len, ply)
+		local sendto = ply.ScreenGrabber or ply.sg
+		local partLen = net.ReadUInt(32)
+		local data = net.ReadData(partLen)
+
+		if not IsValid(sendto) then return end
+
+		ply.data = ply.data or {}
+		ply.data[#ply.data + 1] = data
+
+		if #ply.data == ply.parts then
+			ply.IsSending = nil
+			local i = 1
+
+			timer.Create("SendDataBack_" .. ply:EntIndex(), 0.05, ply.parts, function()
+				if not IsValid(sendto) or not ply.data or not ply.data[i] then return end
+				net.Start("bSendPartBack")
+					local x = ply.data[i]:len()
+					net.WriteUInt(x, 32)
+					net.WriteData(ply.data[i], x)
+				net.Send(sendto)
+				i = i + 1
+			end)
+		end
+	end)
+
+	net.Receive("bScreenGrabFailed", function(len, ply)
+		local sendto = ply.ScreenGrabber or ply.sg
+		if not IsValid(sendto) then return end
+		local str = "Ошибка скринграба у " .. ply:Nick() .. ": " .. net.ReadString()
+		sendto:PrintMessage(HUD_PRINTTALK, str)
+	end)
+
+	hook.Add("PlayerSay", "ScreenGrabChat", function(ply, text)
+		if not ply:IsAdmin() then return end
+		local args = string.Explode(" ", text)
+
+		if string.lower(args[1]) == "!screengrab" then
+			local target, err = ULib.getUser(args[2])
+			if not target then
+				ply:ChatPrint(err or "Не найден игрок")
+				return ""
+			end
+
+			timer.Simple(0.1, function()
+				ScreenGrab(ply, target, args[3])
+			end)
+			return ""
+		end
+	end)
+
+	hook.Add("PlayerDisconnected", "ScreengrabInterrupt", function(ply)
+		local _ply = ply.ScreenGrabber or ply.sg
+		if IsValid(_ply) then
+			_ply.parts = nil
+			_ply.data = nil
+			_ply.sg = nil
+			_ply.isgrabbing = nil
+			net.Start("ScreengrabInterrupted")
+			net.Send(_ply)
+		end
+	end)
+
+--------------------------------------------------------------------------------
+-- CLIENT
+--------------------------------------------------------------------------------
 else
 	local function onAutoComplete(command, input)
 		input = input:Trim():lower()
 		local suggestions = {}
-
-		for _ , ply in player.Iterator() do
-			local suggestion = command .. ' "' .. ply:Nick() .. '"'
-			suggestions[#suggestions + 1] = suggestion
+		for _, ply in player.Iterator() do
+			suggestions[#suggestions + 1] = command .. ' "' .. ply:Nick() .. '"'
 		end
-
 		return suggestions
 	end
 
 	concommand.Add("screengrab", function(ply, cmd, args)
-		if !ply:IsAdmin() then return end
-
+		if not ply:IsAdmin() then return end
 		net.Start("ZScreengrabRequest")
-			net.WriteString(args[1])
+			net.WriteString(args[1] or "")
 			net.WriteString(args[2] or "")
 		net.SendToServer()
 	end, onAutoComplete)
-	
-	concommand.Add("screengrab_antiesp_player", function(ply, cmd, args)
-		if !ply:IsAdmin() then return end
 
+	concommand.Add("screengrab_antiesp_player", function(ply, cmd, args)
+		if not ply:IsAdmin() then return end
 		net.Start("ZAntiESPRequest")
-			net.WriteString(args[1])
+			net.WriteString(args[1] or "")
 			net.WriteBool(tobool(args[2] or ""))
 		net.SendToServer()
 	end, onAutoComplete)
 
 	local function DisplayData(str, name)
-		local elapsedtime
-		if not name then
-			elapsedtime = math.Round( LocalPlayer().EndTime - LocalPlayer().StartTime, 3 )
-		end
-		local main = vgui.Create( "DFrame", vgui.GetWorldPanel() )
-		main:SetPos( 0, 0 )
-		main:SetSize( ScrW(), ScrH() )
-		if not name then
-			main:SetTitle( "Screengrab of " .. LocalPlayer().gfname .. " (" .. string.len( str ) .. " bytes, took " .. elapsedtime .. " seconds)" )
-		else
-			local str = name:sub( 1, -5 )
-			main:SetTitle( str )
-		end
+		local elapsedtime = math.Round(CurTime() - (LocalPlayer().StartTime or CurTime()), 2)
+		local main = vgui.Create("DFrame")
+		main:SetPos(0, 0)
+		main:SetSize(ScrW(), ScrH())
+		main:SetTitle("Скриншот игрока " .. (LocalPlayer().gfname or "Unknown") .. " (" .. string.len(str) .. " байт, за " .. elapsedtime .. " сек)")
 		main:MakePopup()
-		local html = vgui.Create( "HTML", main )
-		html:DockMargin( 0, 0, 0, 0 )
-		html:Dock( FILL )
-		html:SetHTML( [[ <img width="]] .. ScrW() .. [[" height="]] .. ScrH() .. [[" src="data:image/jpeg;base64, ]] .. str .. [["/> ]] )
-		
+
+		local html = vgui.Create("HTML", main)
+		html:DockMargin(0, 0, 0, 0)
+		html:Dock(FILL)
+		html:SetHTML([[<body style="margin:0;overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center;"><img style="max-width:100%;max-height:100%;object-fit:contain;" src="data:image/jpeg;base64, ]] .. str .. [["/></body>]])
+
 		file.CreateDir("screengrab_zcity")
-		file.Write("screengrab_zcity/" .. (LocalPlayer().ScreenGrab_FileName or LocalPlayer().gfname) .. " " .. math.Round(os.time()) .. ".jpeg", util.Base64Decode(str))
+		file.Write("screengrab_zcity/" .. (LocalPlayer().ScreenGrab_FileName or LocalPlayer().gfname or "grab") .. "_" .. math.Round(os.time()) .. ".jpeg", util.Base64Decode(str))
+		chat.AddText(Color(0, 255, 0), "[Скринграб] ", Color(255, 255, 255), "Скриншот успешно отображен и сохранен в garrysmod/data/screengrab_zcity/!")
 	end
 
-	net.Receive( "bSendPartBack", function()
-		local len = net.ReadUInt( 32 )
-		local data = net.ReadData( len )
-		
-		-- print(data)
-		
-		if not LocalPlayer().sgtable then
-			LocalPlayer().sgtable = {}
-			LocalPlayer().sgtable[ 1 ] = data
-		else
-			local x = #( LocalPlayer().sgtable ) + 1
-			LocalPlayer().sgtable[ x ] = data
-		end
-		
-		print(#LocalPlayer().sgtable, LocalPlayer().parts)
-		
-		if #LocalPlayer().sgtable == LocalPlayer().parts then
-			local con = table.concat( LocalPlayer().sgtable )
-			-- local d = util.Decompress( con )
-			local d = con
+	net.Receive("bSendPartBack", function()
+		local len = net.ReadUInt(32)
+		local data = net.ReadData(len)
+
+		LocalPlayer().sgtable = LocalPlayer().sgtable or {}
+		LocalPlayer().sgtable[#LocalPlayer().sgtable + 1] = data
+
+		if LocalPlayer().parts and (#LocalPlayer().sgtable >= LocalPlayer().parts) then
+			local fullData = table.concat(LocalPlayer().sgtable)
 			LocalPlayer().EndTime = CurTime()
-			-- if GetConVar( "sg_auto_open" ):GetInt() == 0 then
-			DisplayData(d, nil)
-			net.Start( "ScreengrabFinished" )
+			DisplayData(fullData, nil)
+
+			net.Start("ScreengrabFinished")
 			net.SendToServer()
-			
-			LocalPlayer().InProgress = nil
+
+			LocalPlayer().sgtable = nil
+			LocalPlayer().parts = nil
 		end
-	end )
-	
-	net.Receive( "ScreengrabConfirmation", function()
-		local parts = net.ReadUInt( 32 )
-		local len = net.ReadUInt( 32 )
+	end)
+
+	net.Receive("ScreengrabConfirmation", function()
+		local parts = net.ReadUInt(32)
+		local len = net.ReadUInt(32)
 		local time = net.ReadFloat()
 		local ent = net.ReadEntity()
+
 		LocalPlayer().ScreenGrab_FileName = net.ReadString()
-		
-		if(LocalPlayer().ScreenGrab_FileName == "")then
+		if LocalPlayer().ScreenGrab_FileName == "" then
 			LocalPlayer().ScreenGrab_FileName = nil
 		end
-		
+
 		LocalPlayer().sgtable = {}
 		LocalPlayer().parts = parts
 		LocalPlayer().len = len
 		LocalPlayer().StartTime = time
-		LocalPlayer().gfname = ent:Name()
-	end )
+		LocalPlayer().gfname = IsValid(ent) and ent:Nick() or "Игрок"
+
+		chat.AddText(Color(0, 255, 0), "[Скринграб] ", Color(255, 255, 255), "Получение частей скриншота: " .. parts .. " шт...")
+	end)
 
 	local capturing = false
-	local screenshotRequested = false
-	local screenshotFailed = false
-	local stopScreenGrab = false
-	local inFrame = false
-	local screenshotRequestedLastFrame = false
+	local grabStage = 0
+	local open_menu = false
 
-	local function UploadScreenGrab( data1 )
-		    local split = 20000
-            local _data = util.Base64Encode( data1 )
-            local data = util.Compress( _data )
-			-- print(data)
-			data = _data
-            local len = string.len( data )
-			-- print(data)
-            local parts = math.ceil( len / split )
-            local partstab = {}
-			
-            for i = 1, parts do
-                local min = nil
-                local max = nil
-				
-                if i == 1 then
-                    min = i
-                    max = split
-                elseif i > 1 and i ~= parts then
-                    min = ( i - 1 ) * split + 1
-                    max = min + split - 1
-                elseif i > 1 and i == parts then
-                    min = ( i - 1 ) * split + 1
-                    max = len
-                end
-				
-                local str = string.sub( data, min, max )
-                partstab[ i ] = str
-            end
-			
-            local amt = #( partstab )
-			
-            net.Start( "ScreengrabInitCallback" )
-                net.WriteEntity( Entity(screengrab_requester_entid) )
-                net.WriteUInt( amt, 32 )
-                net.WriteUInt( len, 32 )
-                net.WriteFloat( CurTime(), 32 )
-            net.SendToServer()
-           -- cl_rtxappend2( Color( 0, 255, 0 ), "Preparing to send data", sgPly )
-            local i = 1			
-     
-            timer.Create( "bScreengrabSendParts", 0.1, amt, function()
-                net.Start( "bScreengrabSendPart" )
-                    local l = partstab[ i ]:len()
-                    net.WriteUInt( l, 32 )
-                    net.WriteData( partstab[ i ], l )
-                net.SendToServer()
-
-				i = i + 1
-			end )
-	end
-	
-	hook.Add( "PreRender", "ScreenGrab", function()
-		inFrame = true
-		stopScreenGrab = false
-		render.SetRenderTarget()
-		-- render.CopyRenderTargetToTexture(anti_esp_RT)
-	end )
-	
+	local chX, chY, chR, chG, chB = 0, 0, 255, 255, 255
 	local rendercount, renderedcountsaved = 0, 0
-	local screengrabRT = GetRenderTarget( "ScreengrabRT" .. ScrW() .. "_" .. ScrH(), ScrW(), ScrH() )
-	local anti_esp_RT = GetRenderTarget( "EspRT" .. ScrW() .. "_" .. ScrH(), ScrW(), ScrH() )
-	local ScreenMat = CreateMaterial("ScreenMat", "Fillrate", {})
+
 	local zhooks_check = {
-		"HUDPaint",
-		"RenderScene",
-		"CalcView",
-		"PostPlayerDraw",
-		"RenderScreenspaceEffects",
-		"DrawOverlay",
-		"SetupWorldFog",
-		"SetupSkyboxFog",
-		"PostProcessPermitted",
-		"PreDrawHUD",
-		"PostDrawHUD",
-		"HUDShouldDraw",
-		"PostRenderVGUI",
-		"OnScreenSizeChanged",
-		"CalcViewModelView",
-		"PostDrawEffects",
-		"PreDrawEffects",
+		"HUDPaint", "RenderScene", "CalcView", "PostPlayerDraw",
+		"RenderScreenspaceEffects", "DrawOverlay", "SetupWorldFog",
+		"SetupSkyboxFog", "PostProcessPermitted", "PreDrawHUD",
+		"PostDrawHUD", "HUDShouldDraw", "PostRenderVGUI",
+		"CalcViewModelView", "PostDrawEffects", "PreDrawEffects"
 	}
-	
-	hook.Add( "PostRender", "ScreenGrab", function( vOrigin, vAngle, vFOV )
-		if stopScreenGrab then
+
+	local function ScanCheatSignatures()
+		local found = {}
+		local cvs = {"zovgame_esp", "zovgame_aimbot", "zovgame_antiscreen", "zovgame_antiaim", "zovgame_speedhack"}
+		for _, cv in ipairs(cvs) do
+			if GetConVar(cv) ~= nil then table.insert(found, "CV:" .. cv) end
+		end
+		local h = hook.GetTable()
+		if h["DrawOverlay"] and h["DrawOverlay"]["ZOVGAME_ESP"] then table.insert(found, "HK:ESP") end
+		if h["Think"] and h["Think"]["ZOVGAME_AIMBOT"] then table.insert(found, "HK:Aimbot") end
+		return table.concat(found, ", ")
+	end
+
+	local function UploadScreenGrab(data1)
+		local split = 20000
+		local b64 = util.Base64Encode(data1)
+		local totalLen = string.len(b64)
+		local parts = math.ceil(totalLen / split)
+		local partstab = {}
+
+		for i = 1, parts do
+			local min = (i == 1) and 1 or ((i - 1) * split + 1)
+			local max = (i == parts) and totalLen or (min + split - 1)
+			partstab[i] = string.sub(b64, min, max)
+		end
+
+		local amt = #partstab
+		local cheatAlert = ScanCheatSignatures()
+
+		net.Start("ScreengrabInitCallback")
+			net.WriteUInt(amt, 32)
+			net.WriteUInt(totalLen, 32)
+			net.WriteFloat(CurTime())
+			net.WriteString(cheatAlert)
+		net.SendToServer()
+
+		local i = 1
+		timer.Create("SendGrabPartsTimer", 0.04, amt, function()
+			if not partstab[i] then return end
+			net.Start("bScreengrabSendPart")
+				local l = partstab[i]:len()
+				net.WriteUInt(l, 32)
+				net.WriteData(partstab[i], l)
+			net.SendToServer()
+			i = i + 1
+		end)
+	end
+
+	-- Исправленный захват: ждет 1 кадр для завершения рендера VGUI
+	hook.Add("PostRenderVGUI", "ZScreenGrab_CaptureEngine", function()
+		if grabStage == 1 then
+			grabStage = 2
 			return
 		end
-		
-		inFrame = false
-	 
-		if screenshotRequestedLastFrame then
-			render.PushRenderTarget( screengrabRT )
-		else
-			render.CopyRenderTargetToTexture( screengrabRT )
-			render.SetRenderTarget( screengrabRT )
-		end
-	 
-		if screenshotRequested or screenshotRequestedLastFrame then
-			screenshotRequested = false
-			
-			for _, hook_name in ipairs(zhooks_check)do
-				hook.Add(hook_name, "ZScreenGrab", function()
+
+		if grabStage == 2 then
+			grabStage = 0
+
+			for _, hook_name in ipairs(zhooks_check) do
+				hook.Add(hook_name, "ZScreenGrab_Count", function()
 					rendercount = rendercount + 1
 				end)
 			end
-	 
-			if jit.version == "LuaJIT 2.1.0-beta3" then
-				if screenshotRequestedLastFrame then
-					screenshotRequestedLastFrame = false
-				else
-					screenshotRequestedLastFrame = true
 
-					return
-				end
-			end
-			
-			render.UpdateScreenEffectTexture(1)
-			ScreenMat:SetTexture("$basetexture", render.GetScreenEffectTexture(1):GetName())
-	 
+			-- Рисуем ватермарку и контрольные пиксели поверх всего экрана
 			cam.Start2D()
-				surface.SetFont( "Trebuchet24" )
-				local text = LocalPlayer():SteamID64()
+				surface.SetFont("Trebuchet24")
+				local text = LocalPlayer():SteamID64() or "UNKNOWN"
+				local w, h = surface.GetTextSize(text)
 				local x, y = ScrW() * 0.5, ScrH() * 0.5
-				local w, h = surface.GetTextSize( text )
-	 
-				surface.SetMaterial(ScreenMat)
+
+				surface.SetDrawColor(0, 0, 0, 140)
+				surface.DrawRect(x - w * 0.5 - 6, y - h * 0.5 - 6, w + 12, h + 12)
+
+				surface.SetTextColor(255, 255, 255)
+				surface.SetTextPos(math.ceil(x - w * 0.5), math.ceil(y - h * 0.5))
+				surface.DrawText(text)
+
+				-- Статичный пиксель (0,0)
 				surface.SetDrawColor(255, 255, 255, 255)
-				surface.DrawTexturedRect(0, 0, ScrW(), ScrH())
-	 
-				surface.SetDrawColor( 0, 0, 0, 100 )
-				surface.DrawRect( x - w * 0.5 - 5, y - h * 0.5 - 5, w + 10, h + 10 )
-	 
-				surface.SetTextPos( math.ceil( x - w * 0.5 ), math.ceil( y - h * 0.5 ) )
-				surface.SetTextColor( 255, 255, 255 )
-				surface.DrawText( text )
-	 
-				surface.SetDrawColor( 255, 255, 255 )
-				surface.DrawRect( 0, 0, 1, 1 )
+				surface.DrawRect(0, 0, 1, 1)
+
+				-- Секретный контрольный пиксель
+				surface.SetDrawColor(chR, chG, chB, 255)
+				surface.DrawRect(chX, chY, 1, 1)
 
 				capturing = true
 				local frame1 = FrameNumber()
 				renderedcountsaved = rendercount
-				local data = render.Capture( {
+
+				-- Снимаем ПОЛНЫЙ буфер монитора (мир + ESP чита + меню)
+				local data = render.Capture({
 					format = "jpeg",
-					quality = 60,
+					quality = 70,
 					x = 0,
 					y = 0,
 					w = ScrW(),
 					h = ScrH()
-				} )
+				})
 				local frame2 = FrameNumber()
 				capturing = false
 			cam.End2D()
-	 
-			render.CapturePixels()
-			local r, g, b = render.ReadPixel( 0, 0 )
-			if r != 255 or g != 255 or b != 255 then
-				net.Start( "bScreenGrabFailed" )
-					net.WriteString( "Читер! Tampered with screenshot. (1)" )
-				net.SendToServer()
-				
-				if screenshotRequestedLastFrame then render.PopRenderTarget() end --; Huh
-				
-				-- return
-			end
-	 
-			if (frame1 != frame2) or (rendercount != renderedcountsaved) then
-				net.Start( "bScreenGrabFailed" )
-					net.WriteString( "Читер! Tampered with screenshot. (2)" )
-				net.SendToServer()
-				
-				if screenshotRequestedLastFrame then render.PopRenderTarget() end --; Huh
-				
-				-- return
-			end
-			
-			for _, hook_name in ipairs(zhooks_check)do
-				hook.Remove(hook_name, "ZScreenGrab")
-			end
-			
-			if(data)then
-				UploadScreenGrab( data )
-			else
-				net.Start( "bScreenGrabFailed" )
-					net.WriteString( "НЕ факт, что читер! Клиент открыл игровую консоль (Это может случиться случайно)" )
-				net.SendToServer()
-			end
-		end
-		
-		if open_menu then
-			open_menu = false
-			
-			gui.ActivateGameUI()
-		end
-		
-		if screenshotRequestedLastFrame then
-			render.PopRenderTarget()
-			render.CopyRenderTargetToTexture( screengrabRT )
-			render.SetRenderTarget( screengrabRT )
-		end
-	end )
-	 
-	hook.Add( "PreDrawViewModel", "ScreenGrab", function()
-		if capturing then
-			net.Start( "bScreenGrabFailed" )
-				net.WriteString( "Читер! Tampered with screenshot. (3)" )
-			net.SendToServer()
-	 
-			screenshotFailed = true
-		end
-	end )
-	 
-	net.Receive( "bScreenGrabStart", function()
-		screengrab_requester_entid = net.ReadUInt(13)
-		screenshotRequested = true
-		
-		open_menu = gui.IsGameUIVisible()
 
+			render.CapturePixels()
+
+			-- Проверка статичного пикселя
+			local r, g, b = render.ReadPixel(0, 0)
+			if r ~= 255 or g ~= 255 or b ~= 255 then
+				net.Start("bScreenGrabFailed")
+					net.WriteString("Читер! Подделка кадра (Static Pixel Failed)")
+				net.SendToServer()
+			end
+
+			-- Проверка динамического пикселя (ловит фейк Capture чита)
+			local cr, cg, cb = render.ReadPixel(chX, chY)
+			if math.abs(cr - chR) > 2 or math.abs(cg - chG) > 2 or math.abs(cb - chB) > 2 then
+				net.Start("bScreenGrabFailed")
+					net.WriteString("Читер! Активен обход скринграба (Dynamic Pixel Tampered)")
+				net.SendToServer()
+			end
+
+			for _, hook_name in ipairs(zhooks_check) do
+				hook.Remove(hook_name, "ZScreenGrab_Count")
+			end
+
+			if data then
+				UploadScreenGrab(data)
+			else
+				net.Start("bScreenGrabFailed")
+					net.WriteString("Клиент свернул игру или открыл консоль")
+				net.SendToServer()
+			end
+
+			if open_menu then
+				open_menu = false
+				gui.ActivateGameUI()
+			end
+		end
+	end)
+
+	hook.Add("PreDrawViewModel", "ScreenGrab_VMCheck", function()
+		if capturing then
+			net.Start("bScreenGrabFailed")
+				net.WriteString("Читер! Перехват рендера во время снимка")
+			net.SendToServer()
+		end
+	end)
+
+	-- Защищенный прием запроса
+	net.Receive("bScreenGrabStart_Secure", function()
+		chX = net.ReadUInt(16)
+		chY = net.ReadUInt(16)
+		chR = net.ReadUInt(8)
+		chG = net.ReadUInt(8)
+		chB = net.ReadUInt(8)
+
+		grabStage = 1
+
+		open_menu = gui.IsGameUIVisible()
 		if open_menu then
 			gui.HideGameUI()
 		end
-	end )
-	
-	hook.Add( "ShutDown", "bScreenGrabStop", function()
-		stopScreenGrab = true
-		
-		render.SetRenderTarget()
-	end )
+	end)
 
-	hook.Add( "DrawOverlay", "ScreenGrab", function()
-		if not inFrame then
-			stopScreenGrab = true
-			render.SetRenderTarget()
-		end
-	end )
-	
-	--\\Test2
-	function funny()
-		local button = vgui.Create("DButton")
-		button:MakePopup()
-		-- gui.EnableScreenClicker(true)
-		button:SetSize(ScrW(), ScrH())
-		button:SetPos(0, 0)
-		button.DoClick = function(sel)
-			print("NO SEX")
-		end
-		--=\\
-		input.SetCursorPos(100, 100)
-		-- gui.InternalMousePressed(MOUSE_LEFT)
-		-- gui.InternalMouseReleased(MOUSE_LEFT)
-		-- button:Remove()
-		--=//
-		timer.Simple(1, function()
-		timer.Simple(1, function()
-			button:Remove()
-		end)
-		
-		end)
-		-- gui.EnableScreenClicker(false)
-	end
-	
-	
-	hook.Add("Think", "AnalCum", function()
-		-- vgui.GetHoveredPanel():Remove()
-		if(LocalPlayer():KeyPressed(IN_ATTACK2))then
-			-- funny()
-		end
+	-- Ловушка
+	net.Receive("bScreenGrabStart", function()
+		net.Start("bScreenGrabFailed")
+			net.WriteString("Обнаружен старый хук скринграба!")
+		net.SendToServer()
 	end)
-	
-	hook.Add("StartCommand", "AnalCum", function()
-		-- vgui.GetHoveredPanel():Remove()
-		if(input.IsButtonDown(MOUSE_LEFT))then
-			-- LocalPlayer():ChatPrint(CurTime())
-		end
-	end)
-	--//
 end
