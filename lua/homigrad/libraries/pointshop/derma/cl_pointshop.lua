@@ -5,8 +5,6 @@ local function AltDonate()
     Derma_Query(
         "We are sorry about that, but for now donation only through sadsalat",
         "Sorry...",
-        "Discord",
-        function() gui.OpenURL("https://discord.gg/475EmEdTgH") end,
         "Close"
     )
 end
