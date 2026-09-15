@@ -112,7 +112,7 @@ function PANEL:InitializeMarkup()
 	local gm = splasheh[math.random(#splasheh)] .. " | " .. string.NiceName(mapname) 
 
     if hg.PluvTown.Active then
-        local text = "<font=ZC_MM_Title><colour=199,2,2>    </colour>City</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
+        local text = "<font=ZC_MM_Title><colour=199,2,2>    </colour>City</font>\n<font=ZCity_Tiny><colour=225,0,250>" .. gm .. "</colour></font>"
 
         self.SelectedPluv = table.Random(hg.PluvTown.PluvMats)
 
@@ -155,7 +155,7 @@ function PANEL:Init()
         if hg.PluvTown.Active then
             surface.SetDrawColor(color_white)
             surface.SetMaterial(self.SelectedPluv or Pluv)
-            surface.DrawTexturedRect(0, ScreenScale(27), ScreenScale(35), ScreenScale(27))
+            surface.DrawTexturedRect(ScreenScale(10), ScreenScale(80), ScreenScale(35), ScreenScale(27))
         end
 
         self.Title:Draw(ScreenScale(15), ScreenScale(100), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 255, TEXT_ALIGN_LEFT)
