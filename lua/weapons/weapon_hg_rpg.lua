@@ -48,6 +48,11 @@ SWEP.DistSound = "weapons/newsndw/newrpg7_dist.wav"
 SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(0,-4,0)
 SWEP.holsteredAng = Angle(0, 0, 0)
+
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(0,-4,0)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 SWEP.OpenBolt = true
 SWEP.SprayRand = {Angle(-0.05, -0.01, 0), Angle(-0.1, 0.01, 0)}
 SWEP.SprayRandOnly = true

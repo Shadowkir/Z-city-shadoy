@@ -89,6 +89,10 @@ SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
 SWEP.holsteredPos = Vector(-24, 18, -25)
 SWEP.holsteredAng = Angle(30, 0, 0)
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-24, 18, -25)
+SWEP.holsteredBackAng  = Angle(30, 0, 0)
+
 --local to head
 SWEP.RHPos = Vector(2,-8,10)
 SWEP.RHAng = Angle(0,25,0)

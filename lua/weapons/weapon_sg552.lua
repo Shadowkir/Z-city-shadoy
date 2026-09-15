@@ -106,7 +106,9 @@ SWEP.LocalMuzzlePos = Vector(0,0,5)
 SWEP.LocalMuzzleAng = Angle(0,0,0)
 SWEP.WeaponEyeAngles = Angle(0,0,0)
 
-
+SWEP.holsteredBone     = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredPos      = Vector(3, 9, -4)
+SWEP.holsteredAng      = Angle(220, 0, 180)
 
 SWEP.HoldType = "rpg"
 SWEP.ZoomPos = Vector(0, 0.36, 5.55)

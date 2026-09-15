@@ -16,6 +16,14 @@ SWEP.Primary.DefaultClip = 20
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "12.7x55 mm"
 
+SWEP.holsteredBone     = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredPos      = Vector(0, 8, 0)
+SWEP.holsteredAng      = Angle(220, 0, 180)
+
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-2, -3, -3)
+SWEP.holsteredBackAng  = Angle(0, 0, 0)
+
 SWEP.CustomShell = "50cal"
 SWEP.EjectPos = Vector(9,0,3.5)
 SWEP.EjectAng = Angle(0,0,0)
