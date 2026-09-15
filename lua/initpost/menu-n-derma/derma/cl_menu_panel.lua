@@ -75,21 +75,21 @@ local Selects = {
 }
 
 local splasheh = {
-    'LIKE HOMICIDED',
-    'PLUV PLUV PLUVISKI',
-    'LULU IS NOT DEAD | !PLUV',
-    'THE TRAITOR WAS KILLED',
-    'NAB HOMICIDE SERVER',
-    'ALSO TRY MODDED HOMICIDE 2',
-    'HOP ON Z-CITY',
-    'JOHN Z-CITY',
-    ':pluvrare:',
-    'SAW51 IS REAL',
-    'MORE SMALLTOWN',
-    'MORE CLUE2022',
-    'BACKROOMS == CLUE',
-    'HELL IS NEAR',
-    'I WISH YOU GOOD HEALTH, JASON STATHAM'
+    'Какая-то песня как то так называется...',
+    'Ник bulimed - читается как Булимёд',
+    'Shadowkir сделал эту сборку',
+    'Я ТВОЮ МАТЬ ТОПОРОМ РУБИЛ',
+    'HOP ON Podval Wekin',
+    'Alexen 08 не петух',
+    'Димко Витаминко',
+    'Дарк кнайт всегда следит за тобой!',
+    'Как дела?',
+    'KAVO? IS REAL',
+    'БОЛЬШЕ ЗОМБИ ИВЕНТОВ',
+    'ДАЙ ЧЕДАРАБОКС',
+    'ХОУМИ БОКС',
+    'он всегда рядом...',
+    'В ГОЛОВУ!'
 }
 
 --print(string.upper('I wish you good health, Jason Statham'))
@@ -119,13 +119,13 @@ function PANEL:InitializeMarkup()
         return markup.Parse(text)
     end
 
-    local text = "<font=ZC_MM_Title><colour=199,2,2,255>Z</colour>-City</font>\n<font=ZCity_Tiny><colour=105,105,105>" .. gm .. "</colour></font>"
+    local text = "<font=ZC_MM_Title><colour=0,150,255,255>Z</colour>-City</font>\n<font=ZCity_Tiny><colour=225,0,250>" .. gm .. "</colour></font>"
     return markup.Parse(text)
 end
 
 local color_red = Color(255,25,25,45)
 local clr_gray = Color(255,255,255,25)
-local clr_verygray = Color(10,10,19,235)
+local clr_verygray = Color(240, 240, 240, 0)
 
 function PANEL:Init()
     self:SetAlpha(0)
@@ -158,7 +158,7 @@ function PANEL:Init()
             surface.DrawTexturedRect(0, ScreenScale(27), ScreenScale(35), ScreenScale(27))
         end
 
-        self.Title:Draw(ScreenScale(15), ScreenScale(50), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 255, TEXT_ALIGN_LEFT)
+        self.Title:Draw(ScreenScale(15), ScreenScale(100), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 255, TEXT_ALIGN_LEFT)
     end
 
     self.Buttons = {}
@@ -218,7 +218,7 @@ local gradient_d = surface.GetTextureID("vgui/gradient-d")
 local gradient_r = surface.GetTextureID("vgui/gradient-u")
 local gradient_l = surface.GetTextureID("vgui/gradient-l")
 
-local clr_1 = Color(102,0,0,35)
+local clr_1 = Color(240, 240, 240, 0)
 function PANEL:Paint(w,h)
     draw.RoundedBox( 0, 0, 0, w, h, self.ColorBG )
     hg.DrawBlur(self, 5)
@@ -245,7 +245,7 @@ function PANEL:AddSelect( pParent, strTitle, tbl )
     btn.HoveredFunc = tbl.HoveredFunc
     local luaMenu = self 
     if tbl.CreatedFunc then tbl.CreatedFunc(btn, self, luaMenu) end
-    btn.RColor = Color(225,225,225)
+    btn.RColor = Color(225,225,250)
     function btn:DoClick()
         -- ,kz оптимизировать надо, но идёт ошибка(кэшировать бы luaMenu.panelparrent вместо вызова его каждый раз)
         if curent_panel == string.lower(strTitle) then
