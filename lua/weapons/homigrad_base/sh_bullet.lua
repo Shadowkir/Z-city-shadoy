@@ -649,7 +649,7 @@ function SWEP:FireBullet()
     bullet.Damage = ammotype.Damage or primary.Damage or 25
 	bullet.Damage = bullet.Damage * (self.Supressor and 0.9 or 1) * (self.DamageMultiplier or 1)
 
-	bullet.Spread = (ammotype.Spread or self.Primary.Spread or 0) * 3
+	bullet.Spread = (ammotype.Spread or self.Primary.Spread or 0) * 12
 	bullet.Num = 1
 	
 	bullet.AmmoType = primary.Ammo
