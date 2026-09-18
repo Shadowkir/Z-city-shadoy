@@ -8,7 +8,8 @@ SWEP.DangerLevel = 70
 SWEP.ViewModel = "models/weapons/cstrike/c_smg_ump45.mdl"
 SWEP.WorldModel = "models/weapons/w_smg_ump45.mdl"
 SWEP.UseHands = true
-SWEP.WepSelectIcon = (surface and surface.GetTextureID("vgui/wep_jack_hmcd_hands"))
+SWEP.WepSelectIcon = Material("vgui/blasphemy/east")
+SWEP.IconOverride = "vgui/blasphemy/east"
 
 SWEP.Primary = {
     Automatic = true,
