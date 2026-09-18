@@ -112,14 +112,14 @@ function PANEL:InitializeMarkup()
 	local gm = splasheh[math.random(#splasheh)] .. " | " .. string.NiceName(mapname) 
 
     if hg.PluvTown.Active then
-        local text = "<font=ZC_MM_Title><colour=199,2,2>    </colour>City</font>\n<font=ZCity_Tiny><colour=225,0,250>" .. gm .. "</colour></font>"
+        local text = "<font=ZC_MM_Title><colour=199,2,2>    </colour>Box</font>\n<font=ZCity_Tiny><colour=130, 130, 130>" .. gm .. "</colour></font>"
 
         self.SelectedPluv = table.Random(hg.PluvTown.PluvMats)
 
         return markup.Parse(text)
     end
 
-    local text = "<font=ZC_MM_Title><colour=0,150,255,255>Z</colour>-City</font>\n<font=ZCity_Tiny><colour=225,0,250>" .. gm .. "</colour></font>"
+    local text = "<font=ZC_MM_Title><colour=199,2,2>Z</colour>-Box</font>\n<font=ZCity_Tiny><colour=130, 130, 130>" .. gm .. "</colour></font>" --может всё таки оставить сити, а то щит какой то...
     return markup.Parse(text)
 end
 
