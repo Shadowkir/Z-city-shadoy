@@ -8,8 +8,11 @@ SWEP.DangerLevel = 70
 SWEP.ViewModel = "models/weapons/cstrike/c_smg_ump45.mdl"
 SWEP.WorldModel = "models/weapons/w_smg_ump45.mdl"
 SWEP.UseHands = true
-SWEP.WepSelectIcon = Material("vgui/blasphemy/east")
-SWEP.IconOverride = "vgui/blasphemy/east"
+if CLIENT then
+	SWEP.WepSelectIcon = Material("vgui/blasphemy/east")
+	SWEP.IconOverride = "vgui/blasphemy/east"
+	SWEP.BounceWeaponIcon = true
+end
 
 SWEP.Primary = {
     Automatic = true,

@@ -8,7 +8,7 @@ SWEP.SlotPos			= 10					-- Position in the slot
 SWEP.DrawAmmo			= true					-- Should draw the default HL2 ammo counter
 SWEP.DrawCrosshair		= true					-- Should draw the default crosshair
 SWEP.DrawWeaponInfoBox	= true					-- Should draw the weapon info box
-SWEP.BounceWeaponIcon	= true					-- Should the weapon icon bounce?
+SWEP.BounceWeaponIcon	= false					-- Should the weapon icon bounce?
 SWEP.SwayScale			= 1.0					-- The scale of the viewmodel sway
 SWEP.BobScale			= 1.0					-- The scale of the viewmodel bob
 
