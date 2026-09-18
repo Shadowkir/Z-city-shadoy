@@ -35,8 +35,11 @@ function StartDiscordPresence(arguments)
 		if prefix then
 			mapname = string.sub(mapname, prefix + 1)
 		end
-		local gm = gmod.GetGamemode().Name .. " | " .. string.NiceName(zb ~= nil and zb.GetRoundName or mapname)
-		rpc_data["details"] = text
+
+		local roundName = (zb ~= nil and (isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName)) or mapname
+		local gm = (gmod.GetGamemode() and gmod.GetGamemode().Name or "Homigrad") .. " | " .. string.NiceName(tostring(roundName))
+
+		rpc_data["details"] = gm
 		rpc_data["startTimestamp"] = discord_start
 		rpc_data["largeImageKey"] = image
 		rpc_data["largeImageText"] = showip
@@ -75,7 +78,10 @@ function StartSteamPresence(arguments)
 		if prefix then
 			mapname = string.sub(mapname, prefix + 1)
 		end
-		local gm = gmod.GetGamemode().Name .. " | " .. string.NiceName(zb ~= nil and zb.GetRoundName or mapname)
+
+		local roundName = (zb ~= nil and (isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName)) or mapname
+		local gm = (gmod.GetGamemode() and gmod.GetGamemode().Name or "Homigrad") .. " | " .. string.NiceName(tostring(roundName))
+		
 		local ip = game.GetIPAddress()
 		local showip = ip
 
@@ -83,7 +89,9 @@ function StartSteamPresence(arguments)
 			showip = "Local Server"
 		end
 
-		if richtext ~= updatedtext then
+		local updatedtext = gm
+
+		if updatedtext and richtext ~= updatedtext then
 			richtext = updatedtext
 			steamworks.SetRichPresence("generic", richtext)
 		end
@@ -106,5 +114,3 @@ hook.Add("PostGamemodeLoaded", "UpdateDiscordStatus", function()
 	StartDiscordPresence()
 	StartSteamPresence()
 end)
-
---print("steam: "..tostring(util.IsBinaryModuleInstalled("steamrichpresencer")),"discord: "..tostring(util.IsBinaryModuleInstalled("gdiscord")))

@@ -1,4 +1,5 @@
 SWEP.PrintName = "Паутинка"
+SWEP.Author = "Sadsalat"
 SWEP.Instructions = "PRESS FIRE TO SHOOT"
 SWEP.Slot = 3
 SWEP.SlotPos = 1
