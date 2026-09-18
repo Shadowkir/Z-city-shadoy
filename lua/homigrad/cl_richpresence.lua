@@ -36,7 +36,6 @@ function StartDiscordPresence(arguments)
 			mapname = string.sub(mapname, prefix + 1)
 		end
 		local gm = gmod.GetGamemode().Name .. " | " .. string.NiceName(zb ~= nil and zb.GetRoundName or mapname)
-		local text = gm .. " | " .. showip .. " | " .. (ply.exp or 0) .. " XP " .. math.Round(ply.skill or 0, 3) .. " Skill"
 		rpc_data["details"] = text
 		rpc_data["startTimestamp"] = discord_start
 		rpc_data["largeImageKey"] = image
@@ -80,7 +79,6 @@ function StartSteamPresence(arguments)
 		local ip = game.GetIPAddress()
 		local showip = ip
 
-		local updatedtext = gm .. " | " .. showip .. " | " .. (ply.exp or 0) .. " XP " .. math.Round(ply.skill or 0, 3) .. " Skill"
 		if ip == "loopback" then
 			showip = "Local Server"
 		end
