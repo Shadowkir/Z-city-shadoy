@@ -6,7 +6,7 @@ function StartDiscordPresence(arguments)
 	require("gdiscord")
 
 	local image = "default"
-	local discord_id = "1365734386619646123"
+	local discord_id = "1550446703092703233"
 	local refresh_time = 30
 	local discord_start = discord_start or -1
 
