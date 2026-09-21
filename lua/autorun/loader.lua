@@ -12,17 +12,6 @@ local sides = {
 	["_cl"] = "cl_",
 }
 
-if CLIENT then
-	lply = LocalPlayer()
-
-	hook.Add("Think", "ZCity_Init_LPlayer", function()
-		if IsValid(LocalPlayer()) then
-			lply = LocalPlayer()
-			hook.Remove("Think", "ZCity_Init_LPlayer")
-		end
-	end)
-end
-
 local function AddFile(File, dir)
 	local fileSide = string.lower(string.Left(File, 3))
 	local fileSide2 = string.lower(string.Right(string.sub(File, 1, -5), 3))
