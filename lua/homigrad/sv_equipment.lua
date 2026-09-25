@@ -1,6 +1,34 @@
 util.AddNetworkString("hg_add_equipment")
 util.AddNetworkString("hg_drop_equipment")
 
+local function HasHeadlamp(ply)
+	return IsValid(ply) and ply.armors and ply.armors["headlamp"] == "hg_headlamp"
+end
+
+if SERVER then
+	concommand.Add("hg_toggle_headlamp", function(ply)
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if not ply:Alive() then return end
+		if not HasHeadlamp(ply) then return end
+
+		local enabled = not ply:GetNWBool("Headlamp_Enabled", false)
+		ply:SetNWBool("Headlamp_Enabled", enabled)
+		ply:EmitSound("items/flashlight1.wav", 65, enabled and 110 or 130)
+	end)
+
+	hook.Add("PlayerDeath", "hg_headlamp_disable_on_death", function(ply)
+		if IsValid(ply) and ply:GetNWBool("Headlamp_Enabled", false) then
+			ply:SetNWBool("Headlamp_Enabled", false)
+		end
+	end)
+
+	hook.Add("PlayerDisconnected", "hg_headlamp_disable_on_leave", function(ply)
+		if IsValid(ply) and ply:GetNWBool("Headlamp_Enabled", false) then
+			ply:SetNWBool("Headlamp_Enabled", false)
+		end
+	end)
+end
+
 function hg.SetArmorRestrictions(ply, restrictions)
 	if not IsValid(ply) then return end
 	ply.ArmorRestrictions = restrictions
@@ -161,6 +189,10 @@ function hg.DropArmorForce(ent, equipment)
             end
         end
 
+		if equipment == "hg_headlamp" then
+			ent:SetNWBool("Headlamp_Enabled", false)
+		end
+
         ent:SyncArmor()
         
         return equipmentEnt
@@ -210,6 +242,10 @@ function hg.DropArmor(ply, equipment)
                 eightbit.EnableEffect(ply:UserID(), ply.PlayerClassName == "furry" and eightbit.EFF_PROOT or 0)
             end
         end
+
+		if equipment == "hg_headlamp" then
+			ply:SetNWBool("Headlamp_Enabled", false)
+		end
 
         ply:SyncArmor()
         --end)
