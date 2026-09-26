@@ -1,7 +1,7 @@
 hg = hg or {}
 hg.Version = "Release 1.4.2"
 hg.GitHub_ReposOwner = "shadowkir"
-hg.GitHub_ReposName = "Z-City"
+hg.GitHub_ReposName = "Z-city-shadoy"
 
 local sides = {
 	["sv_"] = "sv_",

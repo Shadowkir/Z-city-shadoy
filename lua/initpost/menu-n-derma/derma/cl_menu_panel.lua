@@ -247,7 +247,7 @@ function PANEL:AddSelect( pParent, strTitle, tbl )
     btn.HoveredFunc = tbl.HoveredFunc
     local luaMenu = self 
     if tbl.CreatedFunc then tbl.CreatedFunc(btn, self, luaMenu) end
-    btn.RColor = Color(225,225,250)
+    btn.RColor = Color(225,225,225)
     function btn:DoClick()
         -- ,kz оптимизировать надо, но идёт ошибка(кэшировать бы luaMenu.panelparrent вместо вызова его каждый раз)
         if curent_panel == string.lower(strTitle) then
