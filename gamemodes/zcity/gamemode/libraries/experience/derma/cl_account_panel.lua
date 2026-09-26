@@ -30,7 +30,6 @@ function PANEL:Init()
 
     --local panel1 = vgui.Create( "DPanel", SInfo )
     --function panel1:Paint() end
-    --SInfo:AddSheet( "Achievements", panel1, "icon16/award_star_silver_3.png" )
 end
 
 function PANEL:SetPlayer(ply)

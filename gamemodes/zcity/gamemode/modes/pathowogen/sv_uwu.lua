@@ -280,7 +280,7 @@ function MODE:RoundStart()
 	self.saved.Escaped = {}
 
 	self.saved.DeathNames = {}
-
+	
 	self.saved.ContractorEscapee = nil
 
 	// shitcode, change it later (or not i guess)
@@ -334,7 +334,7 @@ function MODE:RoundStart()
 
 		self.saved.traitors[ply] = true
 	end
-	
+
 	-- self.saved.traitors[Entity(1)] = true
 	-- self.saved.furs[Entity(1)] = true
 
@@ -1075,3 +1075,4 @@ function MODE.GuiltCheck(Attacker, Victim, add, harm, amt)
     if Victim:GetPlayerClass() == Attacker:GetPlayerClass() then
         return 1, true
     end
+end

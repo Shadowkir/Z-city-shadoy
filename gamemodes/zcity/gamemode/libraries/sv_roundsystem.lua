@@ -87,7 +87,6 @@ function zb:EndRound()
 	hook.Run("ZB_EndRound")
 	zb.AddFade()
 
-	hg.achievements.SavePlayerAchievements()
 end
 
 function zb:CheckWinner(tbl)
