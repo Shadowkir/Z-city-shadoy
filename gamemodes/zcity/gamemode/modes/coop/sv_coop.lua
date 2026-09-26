@@ -6,6 +6,26 @@ MODE.randomSpawns = false
 MODE.ROUND_TIME = 9000
 hg.NextMap = ""
 
+local function GiveHeadlamp(ply)
+    if not IsValid(ply) or not ply:Alive() then return end
+
+    ply.armors = ply.armors or {}
+
+    for k, v in pairs(ply.armors) do
+        if k == "hg_headlamp" or (isstring(v) and v == "hg_headlamp") or (IsValid(v) and v:GetClass() == "ent_armor_hg_headlamp") then
+            return
+        end
+    end
+
+    if hg and hg.AddArmor then
+        hg.AddArmor(ply, "hg_headlamp")
+    end
+
+    if ply.SyncArmor then
+        ply:SyncArmor()
+    end
+end
+
 
 local coop_rts = CreateConVar("zb_coop_rts", "1", FCVAR_PROTECTED, "Toggle NPC rebel possess in Half-Life 2 CO-OP mode", 0, 1)
 local coop_rts_cmb = CreateConVar("zb_coop_rts_cmb", "1", FCVAR_PROTECTED, "Toggle NPC combine possess in Half-Life 2 CO-OP mode if zb_coop_rts is enabled", 0, 1)
@@ -403,11 +423,16 @@ function MODE:GiveEquipment()
             local hands = ply:Give("weapon_hands_sh")
             ply:SelectWeapon("weapon_hands_sh")
 
-            timer.Simple(0.1, function()
+            timer.Simple(0.15, function()
+                if not IsValid(ply) then return end
                 ply.noSound = false
+                
+                -- Выдаем налобный фонарик всем живым игрокам
+                GiveHeadlamp(ply)
             end)
 
             ply:SetSuppressPickupNotices(false)
+
         end
     end)
 end
