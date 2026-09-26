@@ -427,7 +427,6 @@ function MODE:GiveEquipment()
                 if not IsValid(ply) then return end
                 ply.noSound = false
                 
-                -- Выдаем налобный фонарик всем живым игрокам
                 GiveHeadlamp(ply)
             end)
 
