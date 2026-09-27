@@ -35,14 +35,14 @@ if CLIENT then
 	local function nameThings(i, thing)
 		local weps = weapons.Get(i)
 		local entss = scripted_ents.Get(i)
-		if weps then return weps.PrintName end
-		if entss then return entss.PrintName end
+		if weps and weps.PrintName then return weps.PrintName end
+		if entss and entss.PrintName then return entss.PrintName end
 		if hg.armor and hg.armor[i] and hg.armor[i][thing] then return thing end
 		if hg.attachmentslaunguage and hg.attachmentslaunguage[thing] then return thing end
 		if i == "Money" then return "Money, " .. tostring(thing) .. "$" end
-		local tryEnt = Entity(thing)
-		if tryEnt and IsValid(tryEnt) then return tryEnt.PrintName end
-		return tostring(i)
+		local tryEnt = isnumber(thing) and Entity(thing)
+		if tryEnt and IsValid(tryEnt) and tryEnt.PrintName then return tryEnt.PrintName end
+		return tostring(i or "")
 	end
 
 	local function getIconThing(i, thing, tab)
