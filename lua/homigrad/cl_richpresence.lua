@@ -6,7 +6,7 @@ function StartDiscordPresence(arguments)
 	require("gdiscord")
 
 	local image = "default"
-	local discord_id = "1550446703092703233"
+	local discord_id = "1365734386619646123"
 	local refresh_time = 30
 	local discord_start = discord_start or -1
 
@@ -27,8 +27,11 @@ function StartDiscordPresence(arguments)
             rpc_data["buttonPrimaryUrl"] = "steam://connect/" .. ip]]
 		end
 
-		rpc_data["partySize"] = player.GetCount()
-		rpc_data["partyMax"] = game.MaxPlayers()
+		local playerCount = player.GetCount()
+		local maxPlayers = game.MaxPlayers()
+
+		rpc_data["partySize"] = playerCount
+		rpc_data["partyMax"] = maxPlayers
 
 		local mapname = game.GetMap()
 		local prefix = string.find(mapname, "_")
@@ -36,10 +39,23 @@ function StartDiscordPresence(arguments)
 			mapname = string.sub(mapname, prefix + 1)
 		end
 
-		local roundName = (zb ~= nil and (isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName)) or mapname
-		local gm = (gmod.GetGamemode() and gmod.GetGamemode().Name or "Homigrad") .. " | " .. string.NiceName(tostring(roundName))
+		local roundName = mapname
+		if zb ~= nil and zb.GetRoundName then
+			local r = isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName
+			if r and r ~= "" then roundName = r end
+		end
 
-		rpc_data["details"] = gm
+		local roundStr = string.lower(tostring(roundName))
+		local isSandbox = (roundStr == "sandbox") or (roundStr == "песочница") or (string.find(roundStr, "sandbox") ~= nil) or (string.find(roundStr, "песочниц") ~= nil) or (engine.ActiveGamemode() == "sandbox")
+
+		local baseText = "Zbox | " .. string.NiceName(tostring(roundName)) .. " (" .. playerCount .. "/" .. maxPlayers .. ")"
+		local text = baseText
+
+		if not isSandbox then
+			text = baseText .. " | " .. (ply.exp or 0) .. " XP " .. math.Round(ply.skill or 0, 3) .. " Skill"
+		end
+
+		rpc_data["details"] = text
 		rpc_data["startTimestamp"] = discord_start
 		rpc_data["largeImageKey"] = image
 		rpc_data["largeImageText"] = showip
@@ -79,19 +95,26 @@ function StartSteamPresence(arguments)
 			mapname = string.sub(mapname, prefix + 1)
 		end
 
-		local roundName = (zb ~= nil and (isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName)) or mapname
-		local gm = (gmod.GetGamemode() and gmod.GetGamemode().Name or "Homigrad") .. " | " .. string.NiceName(tostring(roundName))
-		
-		local ip = game.GetIPAddress()
-		local showip = ip
-
-		if ip == "loopback" then
-			showip = "Local Server"
+		local roundName = mapname
+		if zb ~= nil and zb.GetRoundName then
+			local r = isfunction(zb.GetRoundName) and zb.GetRoundName() or zb.GetRoundName
+			if r and r ~= "" then roundName = r end
 		end
 
-		local updatedtext = gm
+		local playerCount = player.GetCount()
+		local maxPlayers = game.MaxPlayers()
 
-		if updatedtext and richtext ~= updatedtext then
+		local roundStr = string.lower(tostring(roundName))
+		local isSandbox = (roundStr == "sandbox") or (roundStr == "песочница") or (string.find(roundStr, "sandbox") ~= nil) or (string.find(roundStr, "песочниц") ~= nil) or (engine.ActiveGamemode() == "sandbox")
+
+		local baseText = "Zbox | " .. string.NiceName(tostring(roundName)) .. " (" .. playerCount .. "/" .. maxPlayers .. ")"
+		local updatedtext = baseText
+
+		if not isSandbox then
+			updatedtext = baseText .. " | " .. (ply.exp or 0) .. " XP " .. math.Round(ply.skill or 0, 3) .. " Skill"
+		end
+
+		if richtext ~= updatedtext then
 			richtext = updatedtext
 			steamworks.SetRichPresence("generic", richtext)
 		end
