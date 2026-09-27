@@ -35,19 +35,7 @@ local INLINE_EMOJIS = {
 	{"bomb", "icon16/bomb.png"},
 	{"bug", "icon16/bug.png"},
 	{"rainbow", "icon16/rainbow.png"},
-	{"joe", "icon16/joe"},
-	{"joe1", "icon16/joe1"},
-	{"joe2", "icon16/joe2"},
-	{"joe3", "icon16/joe3"},
-	{"pluv", "icon16/pluv"},
-	{"pluvnerd", "icon16/pluvnerd"},
-	{"pluvomg", "icon16/pluvomg"},
-	{"pluvsad", "icon16/pluvsad"},
-	{"pluvsnooze", "icon16/pluvsnooze"},
-	{"steamhappy", "icon16/steamhappy"},
-	{"fiyy", "icon16/fiyy"},
-	{"grr", "icon16/grr"},
-	{"scared", "icon16/scared"}
+	{"yuuri1", "sticker/yuuri1.png"},
 }
 
 local EMOJI_MATERIALS = {}
