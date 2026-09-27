@@ -88,9 +88,14 @@ SWEP.attPos = Vector(0,0,2)
 SWEP.attAng = Angle(-90,0,0)
 SWEP.lengthSub = 25
 SWEP.DistSound = ""
-SWEP.holsteredBone = "ValveBiped.Bip01_Spine2"
-SWEP.holsteredPos = Vector(5, 11, -4)
-SWEP.holsteredAng = Angle(-150, -10, 180)
+
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(5, 11, -4)
+SWEP.holsteredBackAng  = Angle(-150, -10, 180)
+
+SWEP.holsteredBone     = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredPos      = Vector(5, 11, -4)
+SWEP.holsteredAng      = Angle(-150, -10, 180)
 
 SWEP.OpenBolt = true
 SWEP.SprayRand = {Angle(-0.05, -0.01, 0), Angle(-0.1, 0.01, 0)}
