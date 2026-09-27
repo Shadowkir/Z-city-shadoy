@@ -1796,26 +1796,37 @@ hook.Add("Move", "CP_detectland", function(ply)
 	ply.prev_on_ground = ply:OnGround()
 end)
 
+
+local zb_replace_jeep = CreateConVar("zb_replace_jeep", "1", {FCVAR_ARCHIVE, FCVAR_NOTIFY}, "заменять ли стандартный транспорт HL2 на кастомный транспорт (1 - да, 0 - нет)", 0, 1)
+
 hook.Add("OnEntityCreated", "FunnySimfphys", function(ent)
-	if IsValid(ent) and ent:GetClass() == "prop_vehicle_jeep" then
-		timer.Simple(1, function()
-			if !IsValid(ent) then return end
-			local pos, ang = ent:GetPos(), ent:GetAngles()
-			pos = pos + vector_up * 10
+    if not zb_replace_jeep:GetBool() then return end
 
-			if CurrentRound and CurrentRound().name == "coop" then
-				simfphys.SpawnVehicleSimple( "sim_fphys_jeep", pos, ang)
-			else
-				local glide = ents.Create("gtav_blazer")
-				glide:SetPos(pos)
-				ang:RotateAroundAxis(ang:Up(), 90)
-				glide:SetAngles(ang)
-				glide:Spawn()
-			end
+    if IsValid(ent) and ent:GetClass() == "prop_vehicle_jeep" then
+        timer.Simple(1, function()
+            if not zb_replace_jeep:GetBool() then return end
+            if not IsValid(ent) then return end
 
-			SafeRemoveEntity(ent)
-		end)
-	end
+            local pos, ang = ent:GetPos(), ent:GetAngles()
+            pos = pos + vector_up * 10
+
+            if CurrentRound and CurrentRound().name == "coop" then
+                if simfphys and simfphys.SpawnVehicleSimple then
+                    simfphys.SpawnVehicleSimple("sim_fphys_jeep", pos, ang)
+                end
+            else
+                local glide = ents.Create("gtav_blazer")
+                if IsValid(glide) then
+                    glide:SetPos(pos)
+                    ang:RotateAroundAxis(ang:Up(), 90)
+                    glide:SetAngles(ang)
+                    glide:Spawn()
+                end
+            end
+
+            SafeRemoveEntity(ent)
+        end)
+    end
 end)
 
 util.AddNetworkString("send_tinnitus")
