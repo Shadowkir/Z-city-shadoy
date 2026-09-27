@@ -35,14 +35,14 @@ if CLIENT then
 	local function nameThings(i, thing)
 		local weps = weapons.Get(i)
 		local entss = scripted_ents.Get(i)
-		if weps and weps.PrintName then return weps.PrintName end
-		if entss and entss.PrintName then return entss.PrintName end
+		if weps then return weps.PrintName end
+		if entss then return entss.PrintName end
 		if hg.armor and hg.armor[i] and hg.armor[i][thing] then return thing end
 		if hg.attachmentslaunguage and hg.attachmentslaunguage[thing] then return thing end
 		if i == "Money" then return "Money, " .. tostring(thing) .. "$" end
-		local tryEnt = isnumber(thing) and Entity(thing)
-		if tryEnt and IsValid(tryEnt) and tryEnt.PrintName then return tryEnt.PrintName end
-		return tostring(i or "")
+		local tryEnt = Entity(thing)
+		if tryEnt and IsValid(tryEnt) then return tryEnt.PrintName end
+		return tostring(i)
 	end
 
 	local function getIconThing(i, thing, tab)
@@ -404,7 +404,8 @@ if CLIENT then
 
 					surface.SetDrawColor(button.col1,0,0,button.col1)
 					surface.DrawOutlinedRect(0, 0, w, h, 1)
-					local Text = (tab == "Ammo" and game.GetAmmoName(name)) or language.GetPhrase(name)
+					local ammoID = tonumber(name) or tonumber(i)
+                    local Text = (tab == "Ammo" and ammoID and game.GetAmmoName(ammoID)) or language.GetPhrase(name)
 					local SubText = utf8.sub(Text, 17)
 					Text = utf8.sub(Text, 1, 17) .. "\n" .. utf8.sub(Text, 18)
 					draw.DrawText(Text, "ZCity_VerySuperTiny", w / 2, (HaveIcon and h / ((#SubText > 0 and 1.65) or 1.3)) or h / 3, color_white, TEXT_ALIGN_CENTER)
