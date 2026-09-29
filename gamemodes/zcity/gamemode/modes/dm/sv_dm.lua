@@ -19,7 +19,7 @@ util.AddNetworkString("dm_start")
 util.AddNetworkString("dm_end")
 
 function MODE:CanLaunch()
-    return true//(zb.GetWorldSize() >= ZBATTLE_BIGMAP)
+    return true -- (zb.GetWorldSize() >= ZBATTLE_BIGMAP)
 end
 
 function MODE:Intermission()
@@ -60,8 +60,7 @@ function MODE:Intermission()
 end
 
 function MODE:CheckAlivePlayers()
-	local AlivePlyTbl = {
-	}
+	local AlivePlyTbl = {}
 	for _, ply in player.Iterator() do
 		if not ply:Alive() then continue end
 		if ply.organism and ply.organism.incapacitated then continue end
@@ -73,59 +72,84 @@ end
 function MODE:ShouldRoundEnd()
 	return (#zb:CheckAlive(true) <= 1)
 end
+--крч это пресеты брони но не все
+local ARMOR_DEFAULT = {"vest3", "helmet1"}
+local ARMOR_LIGHT   = {"vest1", "helmet1"}
+local ARMOR_HEAVY   = {"vest4", "helmet1"}
+local ARMOR_NVG     = {"vest1", "helmet1", "nightvision1"}
+local ARMOR_MASK    = {"vest3", "helmet1", "mask1"}
 
 local loadouts = {
-	{primary = "weapon_glock17", attachments = {{"supressor4"},{"holo16","laser3"},{"holo15","laser1"},""}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_cz75", attachments = {{"supressor4"},{"supressor4"},""}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_deagle", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_ar15", attachments = {{"holo1","grip1","supressor2"},{"holo5","grip3","supressor2"},{"laser4","grip2"},{"laser4","supressor2"}}, armor = {"vest4","helmet1"}, ammo = 3},
-	{primary = "weapon_sr25", attachments = {{"holo1","laser2"},{"optic2"},{"holo8","supressor7"},{"holo5","supressor7"}}, armor = {"vest1","helmet1","nightvision1"}, ammo = 3},
-	{primary = "weapon_ptrd", attachments = "", armor = {}, ammo = 12},
-	{primary = "weapon_mp7", attachments = {{"holo1","supressor2"},{"holo5","supressor2"},{"laser4","supressor2"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_p90", attachments = {{"holo15","supressor4"},{"laser1","supressor4"},{"holo14","supressor4"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_doublebarrel_short", attachments = "", armor = {"vest3","helmet1","mask1"}, ammo = 6},
-	{primary = "weapon_akm", attachments = {{"holo6","supressor1"},{"holo4","laser1"},{"supressor1"}}, armor = {"vest1","helmet1","nightvision1"}, ammo = 3},
-	{primary = "weapon_remington870", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_m4a1", attachments = {{"holo1","grip1","supressor2"},{"holo5","grip3","supressor2"},{"laser4","grip2"},{"laser4","supressor2"}}, armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_mac11", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_mp5", attachments = {{"supressor4"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_m590a1", attachments = "", armor = {"vest4","helmet1","mask1"}, ammo = 3},
-	{primary = "weapon_draco", attachments = "", armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_uzi", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_tmp", attachments = {{"optic8"},{"holo3"},{"holo4"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_xm1014", attachments = "", armor = {"vest3","helmet1","mask1"}, ammo = 3},
-	{primary = "weapon_saiga12", attachments = "", armor = {"vest3","helmet1","mask1"}, ammo = 4},
-	{primary = "weapon_svd", attachments = {{"holo13"},{"holo6"},{"holo2"}}, armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_spas12", attachments = {{"supressor5"}}, armor = {"vest3","helmet1","mask1"}, ammo = 3},
-	{primary = "weapon_hk416", attachments = {{"holo1","grip1","supressor2"},{"holo5","grip3","supressor2"},{"laser4","grip2"},{"laser4","supressor2"}}, armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_akmwreked", attachments = "", armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_hk_usp", attachments = {{"supressor3"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_glock18c", attachments = {{"mag1","holo16"}}, armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_skorpion", attachments = "", armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_tec9", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_sg552", attachments = {{"optic8"},{"holo3"},{"holo4"}}, armor = {"vest4","helmet1"}, ammo = 3},
-	{primary = "weapon_vector", attachments = {{"supressor4","holo3"},{"holo4"},{"holo7"}}, armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_revolver2", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_revolver357", attachments = "", armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_pkm", attachments = "", armor = {"vest1","helmet1"}, ammo = 0},
-	{primary = "weapon_ak74", attachments = {{"holo6"},{"holo4"},{"optic8"}}, armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_ak74u", attachments = {{"holo6"},{"holo4"}}, armor = {"vest1","helmet1"}, ammo = 3},
-	{primary = "weapon_winchester", attachments = "", armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_sks", attachments = {{"optic8"},{"holo6"}}, armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_ruger", attachments = "", armor = {"vest3","helmet1"}, ammo = 5},
-	{primary = "weapon_mini14", attachments = {{"optic8"},{"holo6"}}, armor = {"vest3","helmet1"}, ammo = 4},
-	{primary = "weapon_ac556", attachments = {{"holo6"},{"holo4"}}, armor = {"vest3","helmet1"}, ammo = 3},
-	{primary = "weapon_ar15", secondary = "weapon_cz75", attachments = {{"holo1","grip1"},{"holo5","grip3"}}, armor = {"vest3","helmet1"}, ammo = 3, ammo2 = 2},
-	{primary = "weapon_akm", secondary = "weapon_px4beretta", attachments = {{"holo6"},{"holo4"}}, armor = {"vest3","helmet1"}, ammo = 3, ammo2 = 2},
-	{primary = "weapon_m4a1", secondary = "weapon_p22", attachments = {{"holo1","grip1"},{"holo5","grip3"}}, armor = {"vest3","helmet1"}, ammo = 3, ammo2 = 2},
-	{primary = "weapon_mp5", secondary = "weapon_revolver2", attachments = {{"supressor4"}}, armor = {"vest3","helmet1"}, ammo = 3, ammo2 = 2},
-	{primary = "weapon_sks", secondary = "weapon_flintlock", attachments = "", armor = {"vest3","helmet1"}, ammo = 4, ammo2 = 3},
-	{primary = "weapon_winchester", secondary = "weapon_cz75", attachments = "", armor = {"vest3","helmet1"}, ammo = 4, ammo2 = 2},
-	{primary = "weapon_mini14", secondary = "weapon_px4beretta", attachments = {{"holo6"}}, armor = {"vest3","helmet1"}, ammo = 3, ammo2 = 2},
-	{primary = "weapon_hg_bow", attachments = "", armor = {"helmet1"}, ammo = 25, melee = "weapon_pocketknife", noGrenade = true, medicine = {"weapon_bandage_sh"}, medicineCount = 1},
-	{primary = "weapon_hg_bow", attachments = "", armor = {"helmet7"}, ammo = 25, melee = "weapon_pocketknife", noGrenade = true, medicine = {"weapon_bigbandage_sh"}, medicineCount = 1},
-	{primary = "weapon_musket", secondary = "weapon_flintlock", attachments = "", armor = {"vest2","helmet1"}, ammo = 10, ammo2 = 6, melee = "weapon_pocketknife", randomMedicine = true},
-	{primary = "weapon_musket", secondary = "weapon_flintlock", attachments = "", armor = {"vest3"}, ammo = 12, ammo2 = 8, melee = "weapon_pocketknife", randomMedicine = true},
+--пистолеты
+	{ p = "weapon_glock17", atts = {{"supressor4"}, {"holo16", "laser3"}, {"holo15", "laser1"}, ""}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_cz75",    atts = {{"supressor4"}, ""}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_deagle",  armor = ARMOR_DEFAULT },
+	{ p = "weapon_glock18c", atts = {{"mag1", "holo16"}}, armor = ARMOR_DEFAULT, ammo = 4 },
+	{ p = "weapon_tec9",    armor = ARMOR_DEFAULT },
+	{ p = "weapon_hk_usp",  atts = {{"supressor3"}}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_revolver2",  armor = ARMOR_DEFAULT },
+	{ p = "weapon_revolver357", armor = ARMOR_DEFAULT },
+
+--пп
+	{ p = "weapon_mac11",   armor = ARMOR_DEFAULT },
+	{ p = "weapon_uzi",     armor = ARMOR_DEFAULT },
+	{ p = "weapon_skorpion", armor = ARMOR_DEFAULT, ammo = 4 },
+	{ p = "weapon_mp5",     atts = {{"supressor4"}}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_mp7",     atts = {{"holo1", "supressor2"}, {"holo5", "supressor2"}, {"laser4", "supressor2"}}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_p90",     atts = {{"holo15", "supressor4"}, {"laser1", "supressor4"}, {"holo14", "supressor4"}}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_tmp",     atts = {{"optic8"}, {"holo3"}, {"holo4"}}, armor = ARMOR_DEFAULT },
+	{ p = "weapon_vector",  atts = {{"supressor4", "holo3"}, {"holo4"}, {"holo7"}}, armor = ARMOR_DEFAULT, ammo = 4 },
+
+
+--автоматы
+	{ p = "weapon_ar15",   atts = {{"holo1", "grip1", "supressor2"}, {"holo5", "grip3", "supressor2"}, {"laser4", "grip2"}, {"laser4", "supressor2"}}, armor = ARMOR_HEAVY },
+	{ p = "weapon_m4a1",   atts = {{"holo1", "grip1", "supressor2"}, {"holo5", "grip3", "supressor2"}, {"laser4", "grip2"}, {"laser4", "supressor2"}}, armor = ARMOR_LIGHT },
+	{ p = "weapon_hk416",  atts = {{"holo1", "grip1", "supressor2"}, {"holo5", "grip3", "supressor2"}, {"laser4", "grip2"}, {"laser4", "supressor2"}}, armor = ARMOR_LIGHT },
+	{ p = "weapon_akm",    atts = {{"holo6", "supressor1"}, {"holo4", "laser1"}, {"supressor1"}}, armor = ARMOR_NVG },
+	{ p = "weapon_ak74",   atts = {{"holo6"}, {"holo4"}, {"optic8"}}, armor = ARMOR_LIGHT },
+	{ p = "weapon_ak74u",  atts = {{"holo6"}, {"holo4"}}, armor = ARMOR_LIGHT },
+	{ p = "weapon_akmwreked", armor = ARMOR_LIGHT },
+	{ p = "weapon_draco",  armor = ARMOR_LIGHT },
+	{ p = "weapon_sg552",  atts = {{"optic8"}, {"holo3"}, {"holo4"}}, armor = ARMOR_HEAVY },
+	{ p = "weapon_ac556",  atts = {{"holo6"}, {"holo4"}}, armor = ARMOR_DEFAULT },
+
+--дробовики
+	{ p = "weapon_remington870", armor = ARMOR_DEFAULT },
+	{ p = "weapon_m590a1",   armor = {"vest4", "helmet1", "mask1"} },
+	{ p = "weapon_doublebarrel_short", armor = ARMOR_MASK, ammo = 6 },
+	{ p = "weapon_xm1014",   armor = ARMOR_MASK },
+	{ p = "weapon_saiga12",  armor = ARMOR_MASK, ammo = 4 },
+	{ p = "weapon_spas12",   atts = {{"supressor5"}}, armor = ARMOR_MASK },
+
+--снайперки
+	{ p = "weapon_sr25",       atts = {{"holo1", "laser2"}, {"optic2"}, {"holo8", "supressor7"}, {"holo5", "supressor7"}}, armor = ARMOR_NVG },
+	{ p = "weapon_svd",        atts = {{"holo13"}, {"holo6"}, {"holo2"}}, armor = ARMOR_LIGHT },
+	{ p = "weapon_sks",        atts = {{"optic8"}, {"holo6"}}, armor = ARMOR_DEFAULT, ammo = 4 },
+	{ p = "weapon_winchester", armor = ARMOR_DEFAULT, ammo = 4 },
+
+--карабины
+	{ p = "weapon_mini14",     armor = ARMOR_DEFAULT, ammo = 4 },
+	{ p = "weapon_ruger",      armor = ARMOR_DEFAULT, ammo = 5 },
+
+--пулеметы
+	{ p = "weapon_pkm",        armor = ARMOR_LIGHT, ammo = 0 },
+
+
+--комплекты с 1 и 2 оружием
+	{ p = "weapon_ar15",       s = "weapon_cz75",        atts = {{"holo1", "grip1"}, {"holo5", "grip3"}}, armor = ARMOR_DEFAULT, ammo2 = 2 },
+	{ p = "weapon_akm",        s = "weapon_px4beretta",   atts = {{"holo6"}, {"holo4"}}, armor = ARMOR_DEFAULT, ammo2 = 2 },
+	{ p = "weapon_m4a1",       s = "weapon_p22",         atts = {{"holo1", "grip1"}, {"holo5", "grip3"}}, armor = ARMOR_DEFAULT, ammo2 = 2 },
+	{ p = "weapon_mp5",        s = "weapon_revolver2",    atts = {{"supressor4"}}, armor = ARMOR_DEFAULT, ammo2 = 2 },
+	{ p = "weapon_sks",        s = "weapon_flintlock",   armor = ARMOR_DEFAULT, ammo = 4, ammo2 = 3 },
+	{ p = "weapon_winchester", s = "weapon_cz75",        armor = ARMOR_DEFAULT, ammo = 4, ammo2 = 2 },
+	{ p = "weapon_mini14",     s = "weapon_px4beretta",  atts = {{"holo6"}}, armor = ARMOR_DEFAULT, ammo2 = 2 },
+
+--рофляночка
+	{ p = "weapon_hg_bow", armor = {"helmet1"}, ammo = 25, melee = "weapon_pocketknife", noGrenade = true, medicine = {"weapon_bandage_sh"}, medicineCount = 1 },
+	{ p = "weapon_hg_bow", armor = {"helmet7"}, ammo = 25, melee = "weapon_pocketknife", noGrenade = true, medicine = {"weapon_bigbandage_sh"}, medicineCount = 1 },
+	{ p = "weapon_musket", s = "weapon_flintlock", armor = {"vest2", "helmet1"}, ammo = 10, ammo2 = 6, melee = "weapon_pocketknife", randomMedicine = true },
+	{ p = "weapon_musket", s = "weapon_flintlock", armor = {"vest3"}, ammo = 12, ammo2 = 8, melee = "weapon_pocketknife", randomMedicine = true },
+	{ p = "weapon_ptrd",       armor = {}, ammo = 12 },
 }
 
 local randomGrenades = {"weapon_hg_rgd_tpik", "weapon_hg_pipebomb_tpik", "weapon_hg_smokenade_tpik", "weapon_hg_flashbang_tpik"}
@@ -137,8 +161,8 @@ local function MakeDissolver(ent, position, dissolveType)
     timer.Simple(5, function()
         if IsValid(Dissolver) then Dissolver:Remove() end
     end)
-	if !IsValid(Dissolver) then return end
-    Dissolver.Target = "dissolve"..ent:EntIndex()
+	if not IsValid(Dissolver) then return end
+    Dissolver.Target = "dissolve" .. ent:EntIndex()
     Dissolver:SetKeyValue("dissolvetype", dissolveType)
     Dissolver:SetKeyValue("magnitude", 0)
     Dissolver:SetPos(position)
@@ -153,7 +177,20 @@ end
 
 function MODE:RoundStart()
 	local loadout = loadouts[math.random(#loadouts)]
-	local selectedAttachments = istable(loadout.attachments) and table.Random(loadout.attachments) or loadout.attachments
+
+	local rawAtts = loadout.atts or loadout.attachments
+	local selectedAttachments
+	if istable(rawAtts) and #rawAtts > 0 then
+		selectedAttachments = table.Random(rawAtts)
+	else
+		selectedAttachments = rawAtts
+	end
+
+	local primaryClass  = loadout.p or loadout.primary
+	local primaryAmmo   = loadout.ammo or 3
+	local armorList     = loadout.armor or ARMOR_DEFAULT
+	local meleeWeapon   = loadout.melee or randomMelees[math.random(#randomMelees)]
+	local secondaryClass = loadout.s or loadout.secondary
 
 	for _, ply in player.Iterator() do
 		if not ply:Alive() then continue end
@@ -165,21 +202,23 @@ function MODE:RoundStart()
 		inv["Weapons"]["hg_sling"] = true
 		ply:SetNetVar("Inventory", inv)
 		
-		local gun = ply:Give(loadout.primary)
+		local gun = ply:Give(primaryClass)
 		if IsValid(gun) then
-			ply:GiveAmmo(gun:GetMaxClip1() * loadout.ammo, gun:GetPrimaryAmmoType(), true)
-			hg.AddAttachmentForce(ply, gun, selectedAttachments)
+			ply:GiveAmmo(gun:GetMaxClip1() * primaryAmmo, gun:GetPrimaryAmmoType(), true)
+			if selectedAttachments and selectedAttachments ~= "" then
+				hg.AddAttachmentForce(ply, gun, selectedAttachments)
+			end
 		end
 
-		if loadout.secondary then
-			local pistol = ply:Give(loadout.secondary)
+		if secondaryClass then
+			local pistol = ply:Give(secondaryClass)
 			if IsValid(pistol) then
 				ply:GiveAmmo(pistol:GetMaxClip1() * (loadout.ammo2 or 2), pistol:GetPrimaryAmmoType(), true)
 			end
 		end
 
-		hg.AddArmor(ply, loadout.armor)
-		ply:Give(loadout.melee or randomMelees[math.random(#randomMelees)])
+		hg.AddArmor(ply, armorList)
+		ply:Give(meleeWeapon)
 
 		if not loadout.noGrenade then
 			local grenadeCount = math.random(1, 2)
@@ -214,15 +253,15 @@ function MODE:RoundStart()
 
 		timer.Simple(0.1, function() ply.noSound = false end)
 		ply:SetSuppressPickupNotices(false)
-		zb.GiveRole(ply, "Fighter", Color(190,15,15))
+		zb.GiveRole(ply, "Fighter", Color(190, 15, 15))
 		ply:SetNetVar("CurPluv", "pluvboss")
 	end
 end
 
 local cooldown = CurTime()
-hook.Add("Think","bober",function(ply)
+hook.Add("Think", "bober", function(ply)
 	local rnd = CurrentRound()
-	if not rnd or rnd.name != "dm" then return end
+	if not rnd or rnd.name ~= "dm" then return end
 	if (zb.ROUND_START or CurTime()) + 20 > CurTime() then return end
 	if cooldown > CurTime() then return end
 	if deathmatch_nozone:GetBool() then return end
@@ -236,19 +275,17 @@ hook.Add("Think","bober",function(ply)
 		if pos:DistToSqr(ent:GetPos()) > radiussqr then
 			if ent:IsPlayer() then
 				hg.LightStunPlayer(ent)
-				
 				continue
 			end
 
 			if hgIsDoor(ent) then
-				if !ent:GetNoDraw() then
+				if not ent:GetNoDraw() then
 					hgBlastThatDoor(ent)
 				end
-
 				continue
 			end
 			
-			if string.find(ent:GetClass(), "prop_") and !hg.expItems[ent:GetModel()] then
+			if string.find(ent:GetClass(), "prop_") and not hg.expItems[ent:GetModel()] then
 				MakeDissolver(ent, ent:GetPos(), 0)
 			end
 		end
@@ -290,18 +327,18 @@ function MODE:EndRound()
 		end
 	end
 
-	timer.Simple(2,function()
+	timer.Simple(2, function()
 		net.Start("dm_end")
 		local ent = zb:CheckAlive(true)[1]
 		
 		if IsValid(ent) then
-			ent:GiveExp(math.random(150,200))
-			ent:GiveSkill(math.Rand(0.2,0.3))
+			ent:GiveExp(math.random(150, 200))
+			ent:GiveSkill(math.Rand(0.2, 0.3))
 		end
 
 		if IsValid(most_violent_player) then
-			most_violent_player:GiveExp(math.random(150,200))
-			most_violent_player:GiveSkill(math.Rand(0.2,0.3))
+			most_violent_player:GiveExp(math.random(150, 200))
+			most_violent_player:GiveSkill(math.Rand(0.2, 0.3))
 		end
 
 		net.WriteEntity(IsValid(ent) and ent:Alive() and ent or NULL)
