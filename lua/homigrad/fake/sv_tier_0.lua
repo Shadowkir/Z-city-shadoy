@@ -1,14 +1,32 @@
 ﻿local blocked_models = {
 	["models/shadowkir/shadowkir/shadowkir.mdl"] = true,
-	--[""] = true,
 }
 
 local function IsBlockedModel(ply)
 	if not IsValid(ply) or not ply:IsPlayer() then return false end
+
+	if ply.NoFakeImmunity then return true end
+
 	local mdl = ply:GetModel()
 	if not mdl then return false end
 	return blocked_models[string.lower(mdl)] == true
 end
+
+local function ToggleFakeImmunity(ply)
+	if not IsValid(ply) or not ply:IsPlayer() then return end
+
+	ply.NoFakeImmunity = not ply.NoFakeImmunity
+
+	if ply.NoFakeImmunity then
+		if IsValid(ply.FakeRagdoll) then
+			hg.FakeUp(ply, true, true)
+		end
+	end
+end
+
+concommand.Add("nofake", function(ply)
+	ToggleFakeImmunity(ply)
+end)
 
 local PLAYER = FindMetaTable("Player")
 if not HookGetRagdollEntity then HookGetRagdollEntity = PLAYER.GetRagdollEntity end
