@@ -373,6 +373,7 @@ local function CreateRadialMenu(options_arg, bAutoClose)
 				draw.DrawText(txt, "HomigradFont", scrW / 2 + math.sin(a) * r * 0.75, scrH / 2 + math.cos(a) * r * 0.75, colWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			end
 		end
+
 		if !paining then
 			draw.SimpleText(lply:GetPlayerName(),"HomigradFontGigantoNormous",scrW * 0.0215* viewLerp,scrH * 0.042, colBack, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			draw.SimpleText( ( (lply.role and lply.role.name) or ""),"HomigradFontGigantoNormous" ,scrW * 0.0215 * viewLerp,scrH * 0.098, colBack, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
@@ -380,13 +381,17 @@ local function CreateRadialMenu(options_arg, bAutoClose)
 			local col = lply:GetPlayerColor():ToColor()
 			draw.SimpleText(lply:GetPlayerName(),"HomigradFontGigantoNormous",scrW * 0.02 * viewLerp,scrH * 0.04, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			draw.SimpleText( ( (lply.role and lply.role.name) or ""),"HomigradFontGigantoNormous" ,scrW * 0.02 * viewLerp,scrH * 0.095, lply.role and lply.role.color or incoentCol, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-			-- какой же тут говнокод все же...
-			-- local walkBtn = input.LookupBinding("+walk") or "BIND YOUR +WALK KEY PLEASE. WRITE \"bind alt +walk\" IN CONSOLE FOR THE LOVE OF GOD"
-			-- draw.SimpleText(walkBtn .. " | Misc", "HomigradFont", scrW * (0.981 + (0.04 * (1-viewLerp))),scrH * 0.9615, colBack, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-			-- draw.SimpleText(walkBtn .. " | Misc", "HomigradFont", scrW * (0.98 + (0.04 * (1-viewLerp))),scrH * 0.96, colWhite, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+		end
+
+		if not CurrentRound then return end
+		if CurrentRound().name == 'hmcd' and lply:Alive() and lply.Profession != '' and !paining then
+			if not CurrentRound().Professions[lply.Profession] then return end 
+
+			draw.SimpleText( ( (lply.Profession != '' and CurrentRound().Professions[lply.Profession].Name  or "")),"HomigradFontGigantoNormous" ,scrW * 0.02 * viewLerp,scrH * 0.15, colBack, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			draw.SimpleText( ( (lply.Profession != '' and CurrentRound().Professions[lply.Profession].Name  or "")),"HomigradFontGigantoNormous" ,scrW * 0.02 * viewLerp,scrH * 0.146, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 		end
 	end
-end
+end 
 
 local function PressRadialMenu(mouseClick)
 	local options = hg.radialOptions
