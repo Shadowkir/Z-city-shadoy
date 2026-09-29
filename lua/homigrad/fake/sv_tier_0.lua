@@ -1,4 +1,16 @@
-﻿local PLAYER = FindMetaTable("Player")
+﻿local blocked_models = {
+	["models/shadowkir/shadowkir/shadowkir.mdl"] = true,
+	--[""] = true,
+}
+
+local function IsBlockedModel(ply)
+	if not IsValid(ply) or not ply:IsPlayer() then return false end
+	local mdl = ply:GetModel()
+	if not mdl then return false end
+	return blocked_models[string.lower(mdl)] == true
+end
+
+local PLAYER = FindMetaTable("Player")
 if not HookGetRagdollEntity then HookGetRagdollEntity = PLAYER.GetRagdollEntity end
 function PLAYER:GetRagdollEntity()
 	local ent = self:GetNWEntity("RagdollDeath")
@@ -92,6 +104,8 @@ local fixbones = {
 }
 
 function hg.Ragdoll_Create(ply)
+	if IsBlockedModel(ply) and ply:Alive() then return end
+
 	local Data = duplicator.CopyEntTable( ply )
 	local ragdoll = ents.Create("prop_ragdoll")
 	duplicator.DoGeneric( ragdoll, Data )
@@ -536,6 +550,8 @@ function hg.ApplyPoses(ply)
 end
 
 function hg.Fake(ply, huyragdoll, no_freemove, force)
+	if IsBlockedModel(ply) then return end
+
 	ply.switchingseat = nil
 	if ply:GetMoveType() == 0 then return end
 	if ply.InVehicle and ply:InVehicle() and not force then return end
