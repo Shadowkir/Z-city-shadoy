@@ -8,4 +8,4 @@
 
 ## 🔗 Resources & Links
 
-https://steamcommunity.com/sharedfiles/filedetails/?id=3785165044
+**(https://steamcommunity.com/sharedfiles/filedetails/?id=3785165044)** - коллекция
