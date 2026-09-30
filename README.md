@@ -8,4 +8,4 @@
 
 ## 🔗 Resources & Links
 
-** [](https://steamcommunity.com/sharedfiles/filedetails/?id=3785165044)** - коллекция
+- **[🎮 Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3657285193)** - Stable version
