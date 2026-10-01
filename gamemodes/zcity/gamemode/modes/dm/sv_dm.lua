@@ -109,7 +109,7 @@ local loadouts = {
 	{ p = "weapon_ak74",   atts = {{"holo6"}, {"holo4"}, {"optic8"}}, armor = ARMOR_LIGHT },
 	{ p = "weapon_ak74u",  atts = {{"holo6"}, {"holo4"}}, armor = ARMOR_LIGHT },
 	{ p = "weapon_akmwreked", armor = ARMOR_LIGHT },
-	{ p = "weapon_draco",  armor = ARMOR_LIGHT },
+	{ p = "weapon_dracovska",  armor = ARMOR_LIGHT }, --weapon_draco
 	{ p = "weapon_sg552",  atts = {{"optic8"}, {"holo3"}, {"holo4"}}, armor = ARMOR_HEAVY },
 	{ p = "weapon_ac556",  atts = {{"holo6"}, {"holo4"}}, armor = ARMOR_DEFAULT },
 
