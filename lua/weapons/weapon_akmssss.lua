@@ -1,0 +1,20 @@
+SWEP.Base = "weapon_akm"
+SWEP.Spawnable = true
+SWEP.AdminOnly = false
+SWEP.PrintName = "AKMS"
+SWEP.Author = "Izhevsk Machine-Building Plant"
+SWEP.Instructions = "An extraordinarily potent instrument of power, this steel 7.62x39mm selective fire, gas-operated rifle with a rotating bolt, capable of firing in either semi-automatic or fully automatic mode, is the epitome of Soviet military might in the mid-20th century. With a cyclic rate of fire of around 600 rounds per minute and a 10-, 20-, or 30-round detachable box magazine, this AKM, designed by the renowned Mikhail Kalashnikov, stands as a symbol of the USSR’s technological progress. Its robust design and reliable performance in harsh conditions underline its reputation as a weapon that has left an indelible mark on global warfare"
+SWEP.Category = "Weapons - Assault Rifles"
+SWEP.Slot = 2
+SWEP.SlotPos = 10
+SWEP.WorldModelFake = "models/weapons/arccw/c_ur_ak.mdl"
+SWEP.FakeBodyGroups = "01010020102"
+SWEP.WepSelectIcon2 = Material("pwb/sprites/akm.png")
+SWEP.IconOverride = "entities/arc9_eft_akm.png"
+SWEP.Spray = {}
+for i = 1, 30 do
+	SWEP.Spray[i] = Angle(-0.02 - math.cos(i) * 0.03, math.cos(i * i) * 0.02, 0) * 3.5
+end
+SWEP.Ergonomics = 0.9
+SWEP.weight = 3.5
+SWEP.ShootAnimMul = 8
