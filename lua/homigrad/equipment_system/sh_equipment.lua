@@ -151,10 +151,15 @@ if CLIENT then
 
     hook.Add("Post Pre Post Processing", "renderEquipmentOverlay", function()
         local Overlay = lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_HEAD)
-        Overlay = IsValid(lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES)) and lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES) or Overlay
-        if !IsValid(Overlay) then return end
+        
         if lply:IsLocal() then return end
-        Overlay:DrawOverlay(lply)
+        if IsValid(Overlay) then 
+            Overlay:DrawOverlay(lply)
+        end
+        Overlay = IsValid(lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES)) and lply:GetEquipmentBySlot(ZC_ARMOR_SLOT_EYES) or Overlay
+        if IsValid(Overlay) then 
+            Overlay:DrawOverlay(lply)
+        end
     end)
 end
 

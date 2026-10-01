@@ -25,11 +25,11 @@ DEFINE_BASECLASS("ent_zcity_armor_base")
 local ENT = {}
 ENT.Type = "anim"
 ENT.Base = "ent_zcity_armor_base"
-ENT.PrintName = "NVG"
+ENT.PrintName = "NVG GPNVG 18"
 ENT.Category = "ZCity TestArmor"
 ENT.Spawnable = true
 ENT.Model = "models/arctic_nvgs/nvg_gpnvg.mdl"
-ENT.IconOverride = "vgui/icons/helmet"
+ENT.IconOverride = "vgui/icons/nvg"
 ENT.SlotOccupation = {                              -- Slots what armor occupate
     [ZC_ARMOR_SLOT_EYES] = true,
 }
