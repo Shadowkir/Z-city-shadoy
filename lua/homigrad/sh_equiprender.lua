@@ -43,7 +43,7 @@ if CLIENT then
 		["models/monolithservers/kerry/swat_male_07.mdl"] = true,
 		["models/monolithservers/kerry/swat_male_08.mdl"] = true,
 		["models/monolithservers/kerry/swat_male_09.mdl"] = true,
-		["models/dejtriyev/smo/ukr_soldier.mdl"] = true,
+        ["models/arty/halo7725/rusop/ukrosoldaten - arc9.mdl"] = true,
 		["models/dejtriyev/smo/zuperzoldat.mdl"] = true,
 		["models/pms/quantum_break/characters/operators/monarchoperator01playermodel.mdl"] = true,
 	}
