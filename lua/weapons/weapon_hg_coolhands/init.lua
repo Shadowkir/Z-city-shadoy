@@ -673,7 +673,7 @@ function SWEP:PrimaryAttack(forcespecial)
 	self:SetNextDown(CurTime() + 7)
 	if not self:GetFists() then
 		self:SetFists(true)
-		self:EmitSound("pwb2/weapons/matebahomeprotection/mateba_cloth.wav", 60, math_random(90, 100), 1, CHAN_BODY)Q
+		self:EmitSound("pwb2/weapons/matebahomeprotection/mateba_cloth.wav", 60, math_random(90, 100), 1, CHAN_BODY)
 		owner:ViewPunch(depang)
 		if not isfur then
 			self:PlayAnim("draw",1)
