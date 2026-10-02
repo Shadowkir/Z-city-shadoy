@@ -27,6 +27,11 @@ function CLASS_UA.On(self)
     self:SetModel(models_ua[math.random(#models_ua)])
     self:SetNWString("PlayerName", ukrainnames[math.random(#ukrainnames)])
 
+    local bgIndex = self:FindBodygroupByName("facewear")
+    if bgIndex ~= -1 then
+        self:SetBodygroup(bgIndex, math.random(0, self:GetBodygroupCount(bgIndex) - 1))
+    end
+
     Appearance.AAttachments = ""
     Appearance.AColthes = ""
     Appearance.ClothesStyle = ""
