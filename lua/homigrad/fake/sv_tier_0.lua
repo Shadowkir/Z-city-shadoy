@@ -1,16 +1,20 @@
-﻿local blocked_models = {
+﻿hg = hg or {}
+
+hg.blocked_models = {
 	["models/shadowkir/shadowkir/shadowkir.mdl"] = true,
 }
 
-local function IsBlockedModel(ply)
+function hg.IsBlockedModel(ply)
 	if not IsValid(ply) or not ply:IsPlayer() then return false end
 
 	if ply.NoFakeImmunity then return true end
 
 	local mdl = ply:GetModel()
 	if not mdl then return false end
-	return blocked_models[string.lower(mdl)] == true
+	return hg.blocked_models[string.lower(mdl)] == true
 end
+
+local IsBlockedModel = hg.IsBlockedModel
 
 local function ToggleFakeImmunity(ply)
 	if not IsValid(ply) or not ply:IsPlayer() then return end

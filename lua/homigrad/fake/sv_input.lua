@@ -1,26 +1,11 @@
 local cooldown = 0.5
 
-local blocked_models = {
-	["models/shadowkir/shadowkir/shadowkir.mdl"] = true,
-	--[""] = true,
-}
-
 local function IsBlockedModel(ply)
-	if not IsValid(ply) then return false end
-	local mdl = ply:GetModel()
-	if not mdl then return false end
-	return blocked_models[string.lower(mdl)] == true
-end
-
-hook.Add("Initialize", "BlockFakeForShadowkir", function()
-	if hg and hg.Fake then
-		local oldFake = hg.Fake
-		hg.Fake = function(ply, ...)
-			if IsBlockedModel(ply) then return end
-			return oldFake(ply, ...)
-		end
+	if hg and hg.IsBlockedModel then
+		return hg.IsBlockedModel(ply)
 	end
-end)
+	return false
+end
 
 concommand.Add("fake", function(ply)
 	if not ply:Alive() then return end
