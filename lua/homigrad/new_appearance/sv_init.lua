@@ -9,7 +9,7 @@ local PSmodule = hg.PointShop
 local cv_custom_skins = CreateConVar("hg_custom_skins", "1", {FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Включение уникальных скинов по SteamID (1 - вкл, 0 - выкл)", 0, 1)
 
 local CustomPlayerModels = {
-    ["76561199028709348"] = "models/saya/saya_no_uta/rstar/saya/saya.mdl",
+    ["76561199028709348"] = "models/saya/saya_no_uta/rstar/saya/saya.mdl", --necoarci
     --[""] = "",
 }
 
