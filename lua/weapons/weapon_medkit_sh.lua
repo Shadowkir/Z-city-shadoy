@@ -139,10 +139,11 @@ if SERVER then
 			end
 		elseif self.mode == 1 then
 			self:Bandage(ent, bone)
-		elseif self.mode == 4 then
+		elseif self.mode == 4 and self.modeValues[4] == 1  then
+			print(self.modeValues[4])
 			if self:Tourniquet(ent, bone) then self.modeValues[4] = 0 end
 		elseif self.mode == 5 then
-			//if ((org.lungsL[2] + org.lungsR[2]) / 2 >= 0.5) and not org.needle then
+			if (((org.lungsL[2] + org.lungsR[2]) / 2 >= 0.5) and not org.needle) or org.o2[1] < 25 then
 				if self.modeValues[5] == 0 then return end
 				if self.poisoned2 then
 					org.poison4 = CurTime()
@@ -162,7 +163,7 @@ if SERVER then
 
 				self.modeValues[5] = 0
 				entOwner:EmitSound("snd_jack_hmcd_needleprick.wav", 60, math.random(95, 105))
-			//end
+			end
 		end
 
 		if self.modeValues[1] == 0 and self.modeValues[2] == 0 and self.modeValues[3] == 0 and self.modeValues[4] == 0 and self.modeValues[5] == 0 and self.ShouldDeleteOnFullUse then
