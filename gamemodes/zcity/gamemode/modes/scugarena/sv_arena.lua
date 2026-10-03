@@ -60,8 +60,8 @@ function MODE:RoundStart()
 		end
 
 		if scug == "saint" then
-			ply:Give("weapon_hg_legacy_grenade_impact")
-			ply:SelectWeapon("weapon_hg_legacy_grenade_impact")
+			ply:Give("weapon_hg_impact_tpik")
+			ply:SelectWeapon("weapon_hg_impact_tpik")
 		end
 
 		timer.Simple(0.1,function()
