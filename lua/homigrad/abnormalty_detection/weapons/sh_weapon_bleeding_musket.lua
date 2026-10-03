@@ -134,6 +134,10 @@ SWEP.punchmul = 1
 SWEP.punchspeed = 1
 SWEP.podkid = 2
 
+SWEP.holsteredBackBone = "ValveBiped.Bip01_Spine2"
+SWEP.holsteredBackPos  = Vector(-14, -4, -12)
+SWEP.holsteredBackAng  = Angle(320, 0, 0)
+
 SWEP.holsteredPos = Vector(-14, -4, -12)
 SWEP.holsteredAng = Angle(320, 0, 0)
 
