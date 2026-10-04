@@ -75,6 +75,9 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
 
     if not isCustom then
         tMdl = APmodule.PlayerModels[1][tbl.AModel] or APmodule.PlayerModels[2][tbl.AModel] or tbl.AModel
+        if isstring(tMdl) and APmodule.FuckYouModels then
+            tMdl = APmodule.FuckYouModels[1][tMdl] or APmodule.FuckYouModels[2][tMdl] or tMdl
+        end
         finalModel = istable(tMdl) and tMdl.mdl or tMdl
     end
 
@@ -94,16 +97,42 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
 
     if not isCustom then
         local mats = ply:GetMaterials()
+        local sexIdx = (istable(tMdl) and tMdl.sex) and 2 or 1
+        local defaultSheet = sexIdx == 2 and "models/humans/female/group01/players_sheet" or "models/humans/male/group01/players_sheet"
 
         if istable(tMdl) and tMdl.submatSlots and tbl.AClothes then
             for k, v in pairs(tMdl.submatSlots) do
-                local slot = 1
                 for i = 1, #mats do
-                    if mats[i] == v then slot = i - 1 break end
+                    if mats[i] == v then
+                        local clothName = nil
+
+                        if istable(tbl.AClothes) then
+                            clothName = tbl.AClothes[k]
+                            if not clothName and (k == "main" or k == "sheet" or k == 1) then
+                                clothName = tbl.AClothes[1] or tbl.AClothes["main"] or tbl.AClothes["sheet"]
+                            end
+                        elseif isstring(tbl.AClothes) and (k == "main" or k == "sheet" or k == 1) then
+                            clothName = tbl.AClothes
+                        end
+
+                        if not isstring(clothName) then
+                            clothName = "normal"
+                        end
+
+                        local mat = hg.Appearance.Clothes[sexIdx][clothName] or defaultSheet
+                        ply:SetSubMaterial(i - 1, mat)
+                        ply:SetNWString("Colthes" .. k, clothName)
+                        break
+                    end
                 end
-                local sexIdx = tMdl.sex and 2 or 1
-                ply:SetSubMaterial(slot, hg.Appearance.Clothes[sexIdx][tbl.AClothes[k]] or hg.Appearance.Clothes[sexIdx]["normal"])
-                ply:SetNWString("Colthes" .. k, tbl.AClothes[k] or "normal")
+            end
+        end
+
+        for i = 1, #mats do
+            if mats[i] == "distac/gloves/hands" or mats[i] == "distac/gloves/pants" or mats[i] == "distac/gloves/cross" then
+                if ply:GetSubMaterial(i - 1) == "" then
+                    ply:SetSubMaterial(i - 1, defaultSheet)
+                end
             end
         end
 
