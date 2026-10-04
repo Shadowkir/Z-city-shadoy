@@ -246,7 +246,7 @@ function SWEP:ApplyForce()
 		end
 
 		if self.CarryEnt:GetClass() == "prop_ragdoll" then
-			local ply2 = RagdollOwner(self.CarryEnt) or self.CarryEnt
+			local ply2 = hg.RagdollOwner(self.CarryEnt) or self.CarryEnt
 			local bone = self.CarryEnt:GetBoneName(self.CarryEnt:TranslatePhysBoneToBone(self.CarryBone))
 
 			if ply:KeyPressed(IN_RELOAD) then
@@ -929,11 +929,12 @@ end
 
 local hg_coolhands = CreateConVar("hg_coolhands", 0, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Give cool hands instead of default hands on spawn")
 hook.Add("PlayerSpawn", "Toggle_CoolHands", function(ply)
+	if not IsValid(ply) then return end
 	if not hg_coolhands:GetBool() or ply.PlayerClassName and ply.PlayerClassName == "headcrabzombie" then return end
 
 	if ply:HasWeapon("weapon_hands_sh") then
 		ply:StripWeapon("weapon_hands_sh")
 	end
 	local hands = ply:Give("weapon_hg_coolhands")
-	ply:SelectWeapon(hands)
+	ply:SelectWeapon("weapon_hg_coolhands")
 end)

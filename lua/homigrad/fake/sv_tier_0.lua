@@ -572,6 +572,7 @@ function hg.ApplyPoses(ply)
 end
 
 function hg.Fake(ply, huyragdoll, no_freemove, force)
+	if not IsValid(ply) then return end
 	if IsBlockedModel(ply) then return end
 
 	ply.switchingseat = nil
