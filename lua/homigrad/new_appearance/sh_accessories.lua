@@ -224,6 +224,58 @@ hg.Accessories = {
         price = 1500,
         name = "ZCITY Baseball Cap"
     },
+-- party hats
+    ["party hat"] = {
+        model = "models/weegeepie/partyhat/partyhat.mdl",
+        bone = "ValveBiped.Bip01_Head1",
+        malepos = {Vector(-16,1.6,0), Angle(180,80,90), 1},
+        fempos = {Vector(-17,1,0), Angle(180,80,90), 1},
+        skin = 0,
+        norender = true,
+        placement = "head",
+        bPointShop = true,
+        price = 1500,
+        name = "Party hat",
+        modelPreRenderCallback = function(ply, ent, model, accessories)
+            if IsValid(model) then
+                model:SetModelScale(0.5, 0)
+            end
+        end,
+    },
+    ["party hat1"] = {
+        model = "models/weegeepie/partyhat/partyhat.mdl",
+        bone = "ValveBiped.Bip01_Head1",
+        malepos = {Vector(-16,1.6,0), Angle(180,80,90), 1},
+        fempos = {Vector(-17,1,0), Angle(180,80,90), 1},
+        skin = 1,
+        norender = true,
+        placement = "head",
+        bPointShop = true,
+        price = 1500,
+        name = "Party hat1",
+        modelPreRenderCallback = function(ply, ent, model, accessories)
+            if IsValid(model) then
+                model:SetModelScale(0.5, 0)
+            end
+        end,
+    },
+    ["party hat2"] = {
+        model = "models/weegeepie/partyhat/partyhat.mdl",
+        bone = "ValveBiped.Bip01_Head1",
+        malepos = {Vector(-16,1.6,0), Angle(180,80,90), 1},
+        fempos = {Vector(-17,1,0), Angle(180,80,90), 1},
+        skin = 7,
+        norender = true,
+        placement = "head",
+        bPointShop = true,
+        price = 1500,
+        name = "Party hat2",
+        modelPreRenderCallback = function(ply, ent, model, accessories)
+            if IsValid(model) then
+                model:SetModelScale(0.5, 0)
+            end
+        end,
+    },
 
     ["gray cap"] = {
         model = "models/modified/hat07.mdl",
