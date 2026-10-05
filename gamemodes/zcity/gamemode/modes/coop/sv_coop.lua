@@ -1,4 +1,3 @@
-
 MODE.name = "coop"
 MODE.PrintName = "CO-OP"
 MODE.randomSpawns = false
@@ -426,8 +425,6 @@ function MODE:GiveEquipment()
             timer.Simple(0.15, function()
                 if not IsValid(ply) then return end
                 ply.noSound = false
-                
-                GiveHeadlamp(ply)
             end)
 
             ply:SetSuppressPickupNotices(false)
@@ -445,6 +442,8 @@ function MODE:GiveDefaultEquipment(ply, playerClass, hasGordon, medicCount, maxM
     inv["Weapons"]["hg_sling"] = true
     inv["Weapons"]["hg_flashlight"] = true
     ply:SetNetVar("Inventory", inv)
+
+    GiveHeadlamp(ply)
 
     if not hasGordon and not ply:IsBot() and not savedGordonExists then
         ply:SetPlayerClass("Gordon", {equipment = playerClass})

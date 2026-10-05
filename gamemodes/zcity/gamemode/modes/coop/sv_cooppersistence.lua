@@ -1,5 +1,3 @@
-
-
 hg = hg or {}
 hg.CoopPersistence = hg.CoopPersistence or {}
 
@@ -47,6 +45,30 @@ function hg.CoopPersistence.ClearSavedData()
     file.Delete(hg.CoopPersistence.GetSavePath())
 end
 
+local function HasHeadlamp(ply)
+    if not IsValid(ply) then return false end
+    if ply.armors then
+        for k, v in pairs(ply.armors) do
+            if k == "hg_headlamp" or (isstring(v) and v == "hg_headlamp") or (IsValid(v) and v:GetClass() == "ent_armor_hg_headlamp") then
+                return true, k, v
+            end
+        end
+    end
+    return false
+end
+
+local function GiveHeadlamp(ply)
+    if not IsValid(ply) or not ply:Alive() then return end
+    if HasHeadlamp(ply) then return end
+
+    if hg and hg.AddArmor then
+        hg.AddArmor(ply, "hg_headlamp")
+    end
+
+    if ply.SyncArmor then
+        ply:SyncArmor()
+    end
+end
 
 function hg.CoopPersistence.SavePlayerData(ply)
     if not IsValid(ply) or not ply:IsPlayer() then return end
@@ -105,15 +127,43 @@ function hg.CoopPersistence.SavePlayerData(ply)
     local armorData = {}
     if ply.armors then
         for placement, armorName in pairs(ply.armors) do
-            armorData[placement] = armorName
+            if isstring(armorName) then
+                armorData[placement] = armorName
+            elseif IsValid(armorName) then
+                if armorName.ArmorName then
+                    armorData[placement] = armorName.ArmorName
+                else
+                    local cls = armorName:GetClass()
+                    if string.sub(cls, 1, 10) == "ent_armor_" then
+                        armorData[placement] = string.sub(cls, 11)
+                    else
+                        armorData[placement] = cls
+                    end
+                end
+            end
         end
     end
     
     local armorHealthData = {}
     if ply.armors_health then
         for placement, health in pairs(ply.armors_health) do
-            armorHealthData[placement] = health
+            if isstring(placement) then
+                armorHealthData[placement] = health
+            elseif IsValid(placement) then
+                local cls = placement:GetClass()
+                if string.sub(cls, 1, 10) == "ent_armor_" then
+                    armorHealthData[string.sub(cls, 11)] = health
+                else
+                    armorHealthData[cls] = health
+                end
+            end
         end
+    end
+
+    local hasHeadlamp, lampKey, lampVal = HasHeadlamp(ply)
+    local headlampHealth = nil
+    if hasHeadlamp and ply.armors_health then
+        headlampHealth = ply.armors_health[lampKey] or (IsValid(lampVal) and ply.armors_health[lampVal]) or ply.armors_health["hg_headlamp"]
     end
 
     local role = ply.role or {}
@@ -137,6 +187,8 @@ function hg.CoopPersistence.SavePlayerData(ply)
         Ammo = ammoData,
         Armor = armorData,
         Armor_health = armorHealthData,
+        Headlamp = hasHeadlamp,
+        HeadlampHealth = headlampHealth,
         Attachments = inv.Attachments or {},
         Role = roleName,
         RoleColor = {roleColor.r, roleColor.g, roleColor.b},
@@ -211,6 +263,13 @@ function hg.CoopPersistence.RestorePlayerData(ply)
         ply.armors_health = ply.armors_health or {}
         for placement, health in pairs(data.Armor_health) do
             ply.armors_health[placement] = health
+        end
+    end
+
+    if data.Headlamp then
+        GiveHeadlamp(ply)
+        if data.HeadlampHealth and ply.armors_health then
+            ply.armors_health["hg_headlamp"] = data.HeadlampHealth
         end
     end
     
@@ -349,6 +408,12 @@ hook.Add("PlayerSpawn", "CoopPersistence_MidRoundSpawn", function(ply)
             
             ply:Give("weapon_hands_sh")
             ply:SelectWeapon("weapon_hands_sh")
+
+            timer.Simple(0.15, function()
+                if IsValid(ply) and ply:Alive() then
+                    GiveHeadlamp(ply)
+                end
+            end)
         end
     end)
 end)
