@@ -425,6 +425,24 @@ function MODE:GiveEquipment()
             timer.Simple(0.15, function()
                 if not IsValid(ply) then return end
                 ply.noSound = false
+
+                local shouldGiveLamp = false
+                if not hasSavedData then
+                    shouldGiveLamp = true
+                elseif savedData then
+                    if savedData.Headlamp ~= nil then
+                        shouldGiveLamp = savedData.Headlamp
+                    elseif savedData.Armor and table.HasValue(savedData.Armor, "hg_headlamp") then
+                        shouldGiveLamp = true
+                    end
+                end
+
+                if shouldGiveLamp then
+                    GiveHeadlamp(ply)
+                    if savedData and savedData.HeadlampHealth and ply.armors_health then
+                        ply.armors_health["hg_headlamp"] = savedData.HeadlampHealth
+                    end
+                end
             end)
 
             ply:SetSuppressPickupNotices(false)
@@ -442,8 +460,6 @@ function MODE:GiveDefaultEquipment(ply, playerClass, hasGordon, medicCount, maxM
     inv["Weapons"]["hg_sling"] = true
     inv["Weapons"]["hg_flashlight"] = true
     ply:SetNetVar("Inventory", inv)
-
-    GiveHeadlamp(ply)
 
     if not hasGordon and not ply:IsBot() and not savedGordonExists then
         ply:SetPlayerClass("Gordon", {equipment = playerClass})
