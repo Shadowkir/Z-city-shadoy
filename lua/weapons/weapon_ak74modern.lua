@@ -177,7 +177,6 @@ for i = 1, 30 do
 end
 
 SWEP.WepSelectIcon2 = Material("vgui/hud/tfa_ins2_ak74m")
-SWEP.WepSelectIcon2box = true
 SWEP.IconOverride = "vgui/hud/tfa_ins2_ak74m"
 
 SWEP.Ergonomics = 1.05
