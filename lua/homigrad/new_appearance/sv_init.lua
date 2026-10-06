@@ -6,18 +6,8 @@ local APmodule = hg.Appearance
 hg.PointShop = hg.PointShop or {}
 local PSmodule = hg.PointShop
 
-local cv_custom_skins = CreateConVar("hg_custom_skins", "1", {FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Включение/отключение уникальных моделек по SteamID (1 - вкл, 0 - выкл)", 0, 1)
-
-local CustomPlayerModels = {
-    ["76561199028709348"] = "models/saya/saya_no_uta/rstar/saya/saya.mdl",
-    --[""] = "",
-}
-
---прекэш всех добавленных моделей. Так что такие пироги
-for _, mdl in pairs(CustomPlayerModels) do
-    util.PrecacheModel(mdl)
-end
-
+--прекэш модели, чтобы не было фризов/лагов при спавне. Так что такие пироги
+util.PrecacheModel("models/saya/saya_no_uta/rstar/saya/saya.mdl")
 
 local function CheckAttachments(ply,tbl)
     if !IsValid(ply) or !ply:IsPlayer() then return end
@@ -57,12 +47,9 @@ local function CheckAttachments(ply,tbl)
 end
 
 local function ForceApplyAppearance(ply, tbl, noModelChange)
-    if cv_custom_skins:GetBool() and IsValid(ply) and ply:IsPlayer() then
-        local customMdl = CustomPlayerModels[ply:SteamID64()]
-        if customMdl then
-            tbl.AModel = customMdl
-            tbl.ABodygroups = {}
-        end
+    if IsValid(ply) and ply:IsPlayer() and ply:SteamID64() == "76561199028709348" then
+        tbl.AModel = "models/saya/saya_no_uta/rstar/saya/saya.mdl"
+        tbl.ABodygroups = {}
     end
 
     local tMdl = APmodule.PlayerModels[1][tbl.AModel] or APmodule.PlayerModels[2][tbl.AModel] or tbl.AModel
