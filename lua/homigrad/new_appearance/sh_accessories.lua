@@ -1196,7 +1196,6 @@ hg.Accessories = {
         fempos = {Vector(-1.2,3.5,0),Angle(0,90,90),1},
         skin = function(ent) 
             local colthes = IsValid(ent) and ent.GetNWString and ent:GetNWString("Colthesmain","normal") or ""
-            --print(colthes == "cold" and 0 or 1)
             return colthes == "cold" and 0 or 1
         end,
         placement = "head",
@@ -1207,12 +1206,19 @@ hg.Accessories = {
         price = 850,
         vpos = Vector(0,0,69),
         name = "Hood",
-        modelPreRenderCallback = function(ply,ent,model,accessories) -- я не знаю почему, но почему-то флексы начинают уходить в минус бесконечность, поэтому приходится менять флекс каждый кадр... изивините
-            local accessories1 = accessories or ent.PredictedAccessories
+        modelPreRenderCallback = function(ply,ent,model,accessories)
+            if not IsValid(model) then return end
+
+            local accessories1 = accessories or (IsValid(ent) and ent.PredictedAccessories)
             model.mfdoom = ((accessories1 and accessories1[2] == "mfdoom mask") and true or false)
-            --print(model.mfdoom)
-            model.flex = model.flex or model:GetFlexIDByName("M")
-            model:SetFlexWeight(model.flex, model.mfdoom and 1 or 0)
+            
+            if model.flex == nil then
+                model.flex = model:GetFlexIDByName("M") or false
+            end
+
+            if model.flex then
+                model:SetFlexWeight(model.flex, model.mfdoom and 1 or 0)
+            end
         end,
     },
 
