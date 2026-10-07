@@ -1,3 +1,4 @@
+-- 
 util.AddNetworkString("Get_Appearance")
 util.AddNetworkString("OnlyGet_Appearance")
 hg.Appearance = hg.Appearance or {}
@@ -5,9 +6,6 @@ local APmodule = hg.Appearance
 
 hg.PointShop = hg.PointShop or {}
 local PSmodule = hg.PointShop
-
---прекэш модели, чтобы не было фризов/лагов при спавне. Так что такие пироги
-util.PrecacheModel("models/saya/saya_no_uta/rstar/saya/saya.mdl")
 
 local function CheckAttachments(ply,tbl)
     if !IsValid(ply) or !ply:IsPlayer() then return end
@@ -47,11 +45,6 @@ local function CheckAttachments(ply,tbl)
 end
 
 local function ForceApplyAppearance(ply, tbl, noModelChange)
-    if IsValid(ply) and ply:IsPlayer() and ply:SteamID64() == "76561199028709348" then
-        tbl.AModel = "models/saya/saya_no_uta/rstar/saya/saya.mdl"
-        tbl.ABodygroups = {}
-    end
-
     local tMdl = APmodule.PlayerModels[1][tbl.AModel] or APmodule.PlayerModels[2][tbl.AModel] or tbl.AModel
     local mdl = istable(tMdl) and tMdl.mdl or tMdl
     if mdl ~= ply:GetModel() and !noModelChange then
@@ -59,12 +52,10 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
     end
 
     local clr = tbl.AColor
-    if ply.SetPlayerColor and clr then
+    if ply.SetPlayerColor then
         ply:SetPlayerColor(Vector(clr.r / 255,clr.g / 255,clr.b / 255))
     end
-    if clr then
-        ply:SetNWVector( "PlayerColor", Vector(clr.r / 255,clr.g / 255,clr.b / 255) )
-    end
+    ply:SetNWVector( "PlayerColor", Vector(clr.r / 255,clr.g / 255,clr.b / 255) )
 
     ply:SetSubMaterial()
 
@@ -91,6 +82,12 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
 
     ply:SetNWString("PlayerName", tbl.AName)
     ply:SetBodyGroups( "00000000000000000000" )
+    --print(mdl)
+    --if mdl == "models/zcity/m/male_09.mdl" and ply:SteamID() == "STEAM_0:1:163575696" then
+    --    timer.Simple(0,function()
+    --    ply:SetBodygroup( 1,7 )
+    --    end)
+    --end
 
     local bodygroups = ply:GetBodyGroups()
     tbl.ABodygroups = tbl.ABodygroups or {}
@@ -112,6 +109,7 @@ local function ForceApplyAppearance(ply, tbl, noModelChange)
     ply.CurAppearance = {}
     table.CopyFromTo(tbl, ply.CurAppearance)
 end
+
 
 local function WearAppearance(ply,tbl)
     local checked = CheckAttachments(ply,tbl)
