@@ -147,7 +147,7 @@ local hg_fov = ConVarExists("hg_fov") and GetConVar("hg_fov") or CreateClientCon
 local fov = hg_fov:GetFloat()
 local fov_mode_lerp = 0
 
-local hg_oldsights = CreateConVar("hg_oldsights", "0", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "No camera wobble when aiming")
+local hg_oldsights = CreateConVar("hg_oldsights", "1", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "No camera wobble when aiming")
 local hg_wepbase_postshake_mul = CreateConVar("hg_wepbase_postshake_mul", "0.02", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Mul post shake after shoot, new default = 0.02, old default = 0.05", 0, 1)
 
 
