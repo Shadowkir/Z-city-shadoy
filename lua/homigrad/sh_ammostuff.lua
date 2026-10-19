@@ -3305,8 +3305,13 @@ local ammoents = {
 
 hg.ammoents = ammoents
 
+CreateConVar("hg_ammo_limit", "1", FCVAR_ARCHIVE, "Enable/disable ammo limit (1/0)")
+
 local function addAmmoTypes()
 	for name, tbl in pairs(ammotypes) do
+		tbl.RealMaxCarry = tbl.maxcarry or 120
+		tbl.maxcarry = 450
+
 		game.AddAmmoType(tbl)
 		
 		if(!tbl.noentity)then
@@ -3329,6 +3334,23 @@ local function addAmmoTypes()
 
 	game.BuildAmmoTypes()
 	--PrintTable(game.GetAmmoTypes())
+end
+
+if SERVER then
+    hook.Add("PlayerAmmoChanged", "hg_custom_ammo_limit", function(ply, ammoID, oldCount, newCount)
+        if not GetConVar("hg_ammo_limit"):GetBool() then return end
+        if ply.SettingAmmoLimit then return end
+
+        local ammoName = game.GetAmmoName(ammoID)
+        local ammoData = hg.ammotypeshuy and hg.ammotypeshuy[ammoName]
+        if not ammoData or not ammoData.RealMaxCarry then return end
+
+        if newCount > ammoData.RealMaxCarry then
+            ply.SettingAmmoLimit = true
+            ply:SetAmmo(ammoData.RealMaxCarry, ammoID)
+            ply.SettingAmmoLimit = nil
+        end
+    end)
 end
 
 addAmmoTypes()
