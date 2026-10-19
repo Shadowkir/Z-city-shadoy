@@ -930,7 +930,7 @@ function SWEP:ApplyForce()
 		end
 
 		if self.CarryEnt:GetClass() == "ent_hg_cyanide_canister" then
-			ply.Guilt = math.max(ply.Guilt, 5)
+			ply.Guilt = math.max(ply.Guilt or 0, 5)
 		end
 
 		if self.CarryEnt:GetClass() == "prop_ragdoll" then
