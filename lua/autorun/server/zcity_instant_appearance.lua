@@ -27,24 +27,32 @@ local function InitInstantAppearance()
         
         local isClass = ply.PlayerClassName and ply.PlayerClassName ~= "none" and ply.PlayerClassName ~= ""
         if isClass then
-            tbl.AClothes = {}
-            tbl.AFacemap = "normal"
+            tbl.AClothes = nil
+            tbl.AFacemap = nil
             tbl.ABodygroups = {}
+            tbl.AAttachments = {}
+            return tbl
         end
 
         if hg.Appearance.GetAccessToAll and hg.Appearance.GetAccessToAll(ply) then return tbl end
         
         tbl.AAttachments = tbl.AAttachments or {}
-        for i = 1, #tbl.AAttachments do
+        for i = #tbl.AAttachments, 1, -1 do
             local uid = tbl.AAttachments[i]
+            local remove = false
+
             if PSmodule.Items and PSmodule.Items[uid] and (not ply:PS_HasItem(uid) and ply:IsPlayer()) then
-                tbl.AAttachments[i] = ""
+                remove = true
                 if ply.ChatPrint then ply:ChatPrint(uid .. " - not bought, removed") end
             end
 
             if hg.Accessories and hg.Accessories[uid] and hg.Accessories[uid].disallowinappearance then
-                tbl.AAttachments[i] = ""
+                remove = true
                 if ply.ChatPrint then ply:ChatPrint(uid .. " - is disallowed in default appearance, removed") end
+            end
+
+            if remove then
+                table.remove(tbl.AAttachments, i)
             end
         end
 
@@ -72,22 +80,35 @@ local function InitInstantAppearance()
     end
 
     _G.ApplyAppearanceRagdoll = function(ent, ply)
+        if not IsValid(ent) or not IsValid(ply) then return end
         local Appearance = ply.CurAppearance
-        if not Appearance then return end
         
-        ent:SetNWString("PlayerName", ply:GetNWString("PlayerName", Appearance.AName))
-        ent:SetNetVar("Accessories", ply:GetNetVar("Accessories", ""))
-
         local isClass = ply.PlayerClassName and ply.PlayerClassName ~= "none" and ply.PlayerClassName ~= ""
         if isClass then
-            ent:SetSubMaterial()
-            ent:SetBodyGroups("00000000000000000000")
-            local clr = Appearance.AColor
+            ent:SetNWString("PlayerName", ply:GetNWString("PlayerName", ply:Nick()))
+            ent:SetNetVar("Accessories", "")
+            
+            ent:SetSkin(ply:GetSkin())
+            for i = 0, ply:GetNumBodyGroups() - 1 do
+                ent:SetBodygroup(i, ply:GetBodygroup(i))
+            end
+            for i = 0, 31 do
+                ent:SetSubMaterial(i, ply:GetSubMaterial(i))
+            end
+
+            local clr = Appearance and Appearance.AColor
             if istable(clr) then
                 ent:SetNWVector("PlayerColor", Vector(clr.r / 255, clr.g / 255, clr.b / 255))
+            else
+                ent:SetNWVector("PlayerColor", ply:GetPlayerColor())
             end
             return
         end
+
+        if not Appearance then return end
+
+        ent:SetNWString("PlayerName", ply:GetNWString("PlayerName", Appearance.AName))
+        ent:SetNetVar("Accessories", ply:GetNetVar("Accessories", ""))
 
         local tMdl = SafeFindModel(ent:GetModel()) or SafeFindModel(Appearance.AModel)
         local sexIdx = (istable(tMdl) and tMdl.sex) and 2 or 1
@@ -144,6 +165,10 @@ local function InitInstantAppearance()
 
     local oldForce = APmodule.ForceApplyAppearance
     APmodule.ForceApplyAppearance = function(ply, tbl, noModelChange)
+        if ply.PlayerClassName and ply.PlayerClassName ~= "none" and ply.PlayerClassName ~= "" then
+            return
+        end
+
         if isfunction(oldForce) then
             oldForce(ply, tbl, noModelChange)
         end
@@ -170,16 +195,15 @@ local function InitInstantAppearance()
         else
             client.CachedAppearance = tAppearance
         end
-        
-        local checked = CheckAttachments(client, table.Copy(client.CachedAppearance))
 
-        local noModelChange = false
         if client.PlayerClassName and client.PlayerClassName ~= "none" and client.PlayerClassName ~= "" then
-            noModelChange = true
+            return
         end
 
+        local checked = CheckAttachments(client, table.Copy(client.CachedAppearance))
+
         if APmodule.ForceApplyAppearance then
-            APmodule.ForceApplyAppearance(client, checked, noModelChange)
+            APmodule.ForceApplyAppearance(client, checked, false)
         end
     end)
 
