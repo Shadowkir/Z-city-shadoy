@@ -10,8 +10,8 @@ SWEP.WorldModel = "models/weapons/w_smg_ump45.mdl"
 SWEP.UseHands = true
 
 if CLIENT then
-	SWEP.WepSelectIcon = Material("criresp/flaguus.png")
-	SWEP.IconOverride = "criresp/flaguus.png"
+	SWEP.WepSelectIcon = Material("sticker/yuuri1.png")
+	SWEP.IconOverride = "sticker/yuuri1.png"
 	SWEP.BounceWeaponIcon = true
 end
 
