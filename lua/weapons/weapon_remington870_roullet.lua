@@ -84,10 +84,6 @@ SWEP.availableAttachments = {
 	barrel = {
 		[1] = {"supressor5", Vector(8.5,0,0), {}},
 	},
-	sight = {
-		["mountType"] = "picatinny",
-		["mount"] = Vector(-18, 1.15, 0),
-	},
 }
 
 --models/weapons/tfa_ins2/upgrades/att_suppressor_12ga.mdl
