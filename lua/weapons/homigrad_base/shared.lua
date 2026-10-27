@@ -1535,7 +1535,7 @@ hg.postureFuncWorldModel = {
 }
 --]]
 
-local angPosture3 = Angle(45, 45, -25)
+local angPosture3 = Angle(60, 10, -25)
 local angPosture3pistol = Angle(5, 65, 0)
 local angPosture4 = Angle(40, -30, -40)
 local angPosture5 = Angle(5, 5, 0)
@@ -1613,8 +1613,8 @@ hg.postureFunctions2 = {
 		self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + (3 + (pistolRun and (isLocal and (epicRunX or 2) or 0) - 2 or 0)) * runmul
 		
 		if not pistolRun then
-			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -9 * runmul
-			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -6 * runmul
+			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -5 * runmul
+			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -1 * runmul
 			self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + -3 * runmul
 			self.AdditionalAngPreLerp:Add(angPostureHighReady * runmul)
 			if running and (isLocal or SERVER) then
