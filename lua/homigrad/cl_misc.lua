@@ -135,6 +135,7 @@
 		["ZCity Attachments Muzzles"] = "vgui/icons/silencer_assaultrifle",
 		["ZCity Attachments Sights"] = "vgui/icons/sights_aimpoint",
 		["ZCity Attachments Underbarrel"] = "vgui/icons/laser_long",
+		["Zcity Stationary Machine Guns"] = "vgui/hud/tfa_kopter_pkm",
 	}
 
 	for cat, icon in pairs(categories) do

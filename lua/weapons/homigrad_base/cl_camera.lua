@@ -261,7 +261,10 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 		ViewPunch2(addview)
 	end
 
-	local k4 = ((organism.adrenaline or 0) * 0.01)
+	-- Отключаем ТОЛЬКО влияние адреналина на прицел, если сидим за пулеметом:
+	local isMounted = IsValid(ply:GetNWEntity("ActiveStationaryGun")) or IsValid(ply:GetNWEntity("ZCity_ActiveKord"))
+	local k4 = isMounted and 0 or ((organism.adrenaline or 0) * 0.01)
+
 	local angRand = AngleRand(-k4 * 2, k4 * 2) * 0.2
 	lerpedAdren:Add(angRand)
 	lerpedAdren = LerpFT(0.1, lerpedAdren, angle_zero)
@@ -327,7 +330,8 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	
 	local imm = (organism and organism.immobilization) or 0
 	if type(imm) ~= "number" then imm = 0 end
-	local adr = (organism and organism.adrenaline) or 0
+	
+	local adr = (not isMounted and organism and organism.adrenaline) or 0
 	if type(adr) ~= "number" then adr = 0 end
 
 	local suicVal = 0
