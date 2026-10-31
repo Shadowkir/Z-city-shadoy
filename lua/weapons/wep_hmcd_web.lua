@@ -4,6 +4,7 @@ SWEP.Instructions = "PRESS FIRE TO SHOOT"
 SWEP.Slot = 3
 SWEP.SlotPos = 1
 SWEP.Spawnable = true
+SWEP.AdminOnly = true
 SWEP.DangerLevel = 70
 SWEP.ViewModel = "models/weapons/cstrike/c_smg_ump45.mdl"
 SWEP.WorldModel = "models/weapons/w_smg_ump45.mdl"
