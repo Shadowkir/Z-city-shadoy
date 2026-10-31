@@ -9,7 +9,6 @@ ENT.AdminSpawnable = false
 ENT.Model = "models/sw/ground/kord/kord.mdl"
 ENT.Mass = 150
 
--- Боезапас и баллистика
 ENT.MaxAmmo = 100
 ENT.AmmoCaliber = "12.7x108 mm"
 ENT.FireRate = 0.1
@@ -61,25 +60,47 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool", 0, "IsReloading")
 end
 
+function ENT:GetAmmoID()
+	local cal = self.AmmoCaliber or "12.7x108 mm"
+	local id = game.GetAmmoID(cal)
+	if id and id > 0 then return id end
+
+	local altCal = string.Replace(cal, " ", "")
+	id = game.GetAmmoID(altCal)
+	if id and id > 0 then return id end
+
+	return -1
+end
+
 function ENT:GetGunnerAmmo(ply)
 	if not IsValid(ply) then return 0 end
+
+	local ammoID = self:GetAmmoID()
+
+	if ammoID > 0 then
+		local count = ply:GetAmmoCount(ammoID)
+		if count and count > 0 then return count end
+	end
+
 	local cal = self.AmmoCaliber or "12.7x108 mm"
 	local altCal = string.Replace(cal, " ", "")
 
-	if ply.inventory and istable(ply.inventory.Ammo) then
-		if ply.inventory.Ammo[cal] and ply.inventory.Ammo[cal] > 0 then
-			return ply.inventory.Ammo[cal]
-		elseif ply.inventory.Ammo[altCal] and ply.inventory.Ammo[altCal] > 0 then
-			return ply.inventory.Ammo[altCal]
-		end
-	end
+	local countByName = ply:GetAmmoCount(cal)
+	if countByName and countByName > 0 then return countByName end
 
-	local netInv = ply.GetNetVar and ply:GetNetVar("Inventory")
-	if istable(netInv) and istable(netInv.Ammo) then
-		if netInv.Ammo[cal] and netInv.Ammo[cal] > 0 then
-			return netInv.Ammo[cal]
-		elseif netInv.Ammo[altCal] and netInv.Ammo[altCal] > 0 then
-			return netInv.Ammo[altCal]
+	countByName = ply:GetAmmoCount(altCal)
+	if countByName and countByName > 0 then return countByName end
+
+	local inv = ply.inventory or (ply.GetNetVar and ply:GetNetVar("Inventory"))
+	if istable(inv) and istable(inv.Ammo) then
+		if ammoID > 0 and inv.Ammo[ammoID] and inv.Ammo[ammoID] > 0 then
+			return inv.Ammo[ammoID]
+		end
+		if inv.Ammo[cal] and inv.Ammo[cal] > 0 then
+			return inv.Ammo[cal]
+		end
+		if inv.Ammo[altCal] and inv.Ammo[altCal] > 0 then
+			return inv.Ammo[altCal]
 		end
 	end
 

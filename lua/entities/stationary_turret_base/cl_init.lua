@@ -204,92 +204,42 @@ local WhiteColor = Color(200, 200, 200, 255)
 local color_bg = Color(0, 0, 0, 150)
 local coloruse = Color(255, 255, 255, 255)
 
+surface.CreateFont("StationaryGun_AmmoFont", {font = "Bahnschrift", size = ScreenScale(15), weight = 500})
+
+local function DrawBar(x, y, w, h, frac)
+	surface.SetDrawColor(255, 255, math.Clamp(frac, 0, 1) * 255)
+	surface.DrawRect(x, y + h * (1 - frac), w, h * frac)
+	surface.DrawOutlinedRect(x - 5, y - 5, w + 10, h + 10)
+end
+
 hook.Add("HUDPaint", "StationaryGun_HUD", function()
 	local ply = LocalPlayer()
 	local gun = ply:GetNWEntity("ActiveStationaryGun")
-	if not IsValid(gun) then return end
-	if gun.EnableHUD == false then return end
+	if not IsValid(gun) or gun.EnableHUD == false then return end
 
-	local scrW, scrH = ScrW(), ScrH()
-	local clipsize = gun.MaxAmmo
-	local clip = gun:GetAmmoCount()
-	local shootTime = gun.LastShootTime or 0
-	local shoot = CurTime() - shootTime
-
+	local cap, clip = gun.MaxAmmo or 100, gun:GetAmmoCount()
 	local ammo = gun:GetGunnerAmmo(ply)
-	local magCount = math.ceil(ammo / clipsize)
+	local mags = math.ceil(ammo / cap)
+	local visMags = math.min(mags, 3)
 
-	local posX = scrW * 0.75
-	local posX2 = scrW * 0.8
-	local HudHPos = 0.8
+	local w, h = math.Round(ScrW() * 0.024), math.Round(ScrH() * 0.1)
+	local subW, subH = math.Round(w * 0.55), math.Round(h * 0.55)
+	local posX, posY = ScrW() - ScrW() * 0.25, ScrH() - ScrH() * 0.166
+	local subY = posY + (h - subH)
 
-	local dynamicMags = ConVarExists("hg_dynamic_mags") and GetConVar("hg_dynamic_mags"):GetBool() or false
+	local bgW = w + 10 + (visMags > 0 and (visMags * (subW + 20) + (mags > 3 and 35 or 0)) or 0)
+	draw.RoundedBox(4, posX - 15, posY - 15, bgW + 20, h + 30, Color(0, 0, 0, 160))
 
-	lastShoot = LerpFT_Local(0.5, lastShoot, (shoot >= 0 and shoot < 0.4) and 1 or 0)
-	lastShootFor = lastShoot
+	DrawBar(posX, posY, w, h, clip / cap)
 
-	local reloadingKey = ply:KeyDown(IN_RELOAD) or gun:GetIsReloading()
-
-	if (clip < clipsize / 3 and lastShoot < 0.9 and dynamicMags) or reloadingKey then
-		ammoCheck = CurTime() + 1
+	local curX = posX + w + 15
+	for i = 1, visMags do
+		local boxAmmo = math.min(cap, ammo - (i - 1) * cap)
+		DrawBar(curX + 5, subY, subW, subH, boxAmmo / cap)
+		curX = curX + subW + 20
 	end
 
-	ammoLongCheck = LerpFT_Local(0.025, ammoLongCheck, reloadingKey and 5 or 0)
-
-	if ammoLongCheck > 4 then
-		local text = (
-			(clip >= clipsize - 1) and "Full" or
-			(clip <= clipsize and clip > clipsize / 1.5) and "~ Full" or
-			(clip <= clipsize / 1.5 and clip > clipsize / 3.5) and "~ Half" or
-			(clip <= clipsize / 3.5 and clip > 0) and "~ Almost Empty" or
-			(clip == 0 and "Empty")
-		)
-
-		coloruse.a = 210 * math.max(ammoLongCheck - 4, 0)
-		coloruse.r, coloruse.g, coloruse.b = 0, 0, 0
-		draw.SimpleText(text, "StationaryGunAmmoFont", scrW * 0.8 + 2, scrH * HudHPos + scrH * 0.05 + 2, coloruse, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-
-		coloruse.r, coloruse.g, coloruse.b = 255, 255, 255
-		draw.SimpleText(text, "StationaryGunAmmoFont", scrW * 0.8, scrH * HudHPos + scrH * 0.05, coloruse, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-	end
-
-	lerpAmmoCheck = LerpFT_Local((ammoCheck > CurTime()) and 0.2 or 0.1, lerpAmmoCheck, ammoCheck > CurTime() and 1 or 0)
-	local Yellow = ((clipsize / math.max(clip, 1)) - 1) / (clipsize / 5)
-
-	color_bg.r = 55 * Yellow
-	color_bg.a = (250 * lastShoot) * lerpAmmoCheck
-	WhiteColor.a = (150 * lastShoot) * lerpAmmoCheck
-
-	local PosLerp = Lerp(math.ease.OutExpo(lerpAmmoCheck), 150, 0)
-	gun.CachedMatIcon = gun.CachedMatIcon or Material(gun.HUD_AmmoIcon or "vgui/hud/127108.png", "smooth")
-	local texture = gun.CachedMatIcon
-
-	if clip > 0 then
-		DrawBullet(texture, posX - (scrH * 0.16) + (scrH * 0.08) * (1 + lastShoot) + 2 + PosLerp, scrH * HudHPos + 2, scrH * 0.08, color_bg)
-		DrawBullet(texture, posX - (scrH * 0.16) + (scrH * 0.08) * (1 + lastShoot) + PosLerp, scrH * HudHPos, scrH * 0.08, WhiteColor)
-	end
-
-	local maxBullets = math.min(clip, 7)
-	for i = 2, maxBullets do
-		local idx = i - 1
-		local PosAdjust = math.max(PosLerp - idx * 15, 0)
-		if idx < 2 then
-			DrawBullet(texture, posX + 2 + PosAdjust, scrH * (HudHPos + idx * (0.026 * lastShoot)) + 2, scrH * 0.08, color_bg)
-			DrawBullet(texture, posX + PosAdjust, scrH * (HudHPos + idx * (0.026 * lastShoot)), scrH * 0.08, WhiteColor)
-		else
-			color_bg.a = (210 - (20 * idx)) * lerpAmmoCheck
-			WhiteColor.a = (210 - (20 * idx)) * lerpAmmoCheck
-			DrawBullet(texture, posX + 2 + PosAdjust, scrH * ((HudHPos - 0.026) + idx * 0.026 + (0.026 * lastShootFor)) + 2, scrH * 0.08, color_bg)
-			DrawBullet(texture, posX + PosAdjust, scrH * ((HudHPos - 0.026) + idx * 0.026 + (0.026 * lastShootFor)), scrH * 0.08, WhiteColor)
-		end
-	end
-
-	if magCount > 0 then
-		coloruse.a = 210 * lerpAmmoCheck
-		coloruse.r, coloruse.g, coloruse.b = 0, 0, 0
-		draw.SimpleText("+" .. magCount, "StationaryGunAmmoFont", posX2 + 2, scrH * HudHPos + 2, coloruse, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-
-		coloruse.r, coloruse.g, coloruse.b = 255, 255, 255
-		draw.SimpleText("+" .. magCount, "StationaryGunAmmoFont", posX2, scrH * HudHPos, coloruse, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+	if mags > 3 then
+		draw.SimpleText("+" .. (mags - 3), "StationaryGun_AmmoFont", curX, subY + subH * 0.5, color_white, 0, 1)
 	end
 end)

@@ -28,19 +28,29 @@ end
 
 function ENT:TakeGunnerAmmo(ply, amount)
 	if not IsValid(ply) or amount <= 0 then return 0 end
-	if not ply.inventory or not istable(ply.inventory.Ammo) then return 0 end
 
-	local cal = self.AmmoCaliber
-	local altCal = string.Replace(cal, " ", "")
-	local invKey = ply.inventory.Ammo[cal] and cal or (ply.inventory.Ammo[altCal] and altCal)
+	local ammoID = self:GetAmmoID()
+	local currentAmmo = self:GetGunnerAmmo(ply)
+	if currentAmmo <= 0 then return 0 end
 
-	if invKey and ply.inventory.Ammo[invKey] > 0 then
-		local toTake = math.min(ply.inventory.Ammo[invKey], amount)
-		ply.inventory.Ammo[invKey] = ply.inventory.Ammo[invKey] - toTake
-		return toTake
+	local toTake = math.min(currentAmmo, amount)
+	local remaining = currentAmmo - toTake
+
+	if ammoID > 0 then
+		ply:SetAmmo(remaining, ammoID)
+	else
+		local cal = self.AmmoCaliber or "12.7x108 mm"
+		ply:SetAmmo(remaining, cal)
 	end
 
-	return 0
+	if ply.inventory and istable(ply.inventory) then
+		ply.inventory.Ammo = ply:GetAmmo()
+		if ply.SetNetVar then
+			ply:SetNetVar("Inventory", ply.inventory)
+		end
+	end
+
+	return toTake
 end
 
 function ENT:CancelReload()
