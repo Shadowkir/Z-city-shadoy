@@ -21,11 +21,10 @@ ENT.Diameter = 12.7
 
 ENT.PitchMin = -20
 ENT.PitchMax = 20
-ENT.YawMin = -25
-ENT.YawMax = 25
+ENT.YawMin = -35
+ENT.YawMax = 35
 
-ENT.GunnerOffset = Vector(-40, 0, 0)
-ENT.ExitOffset = Vector(-70, 0, 5)
+ENT.GunnerOffset = Vector(-38, 0, 0)
 ENT.SightOffset = Vector(-10, 0, 18)
 
 ENT.SoundFire = "homigrad/weapons/rifle/loud_awp3.wav"
@@ -42,11 +41,8 @@ ENT.RecoilClimbPitch = {0.65, 1.0}
 ENT.RecoilClimbYaw   = {-0.25, 0.25}
 ENT.ScreenShakeAmp   = 7.0
 ENT.ScreenShakeDist  = 700
-ENT.ViewKickBack     = 3.5
-ENT.ViewKickPitch    = 1.6
 
 ENT.EnableHUD = true
-ENT.HUD_AmmoIcon = "vgui/hud/127108.png"
 
 ENT.RefillAmmoClasses = {
 	["ent_ammo_12.7x108mm"] = true,
@@ -76,7 +72,6 @@ function ENT:GetGunnerAmmo(ply)
 	if not IsValid(ply) then return 0 end
 
 	local ammoID = self:GetAmmoID()
-
 	if ammoID > 0 then
 		local count = ply:GetAmmoCount(ammoID)
 		if count and count > 0 then return count end
@@ -93,15 +88,9 @@ function ENT:GetGunnerAmmo(ply)
 
 	local inv = ply.inventory or (ply.GetNetVar and ply:GetNetVar("Inventory"))
 	if istable(inv) and istable(inv.Ammo) then
-		if ammoID > 0 and inv.Ammo[ammoID] and inv.Ammo[ammoID] > 0 then
-			return inv.Ammo[ammoID]
-		end
-		if inv.Ammo[cal] and inv.Ammo[cal] > 0 then
-			return inv.Ammo[cal]
-		end
-		if inv.Ammo[altCal] and inv.Ammo[altCal] > 0 then
-			return inv.Ammo[altCal]
-		end
+		if ammoID > 0 and inv.Ammo[ammoID] and inv.Ammo[ammoID] > 0 then return inv.Ammo[ammoID] end
+		if inv.Ammo[cal] and inv.Ammo[cal] > 0 then return inv.Ammo[cal] end
+		if inv.Ammo[altCal] and inv.Ammo[altCal] > 0 then return inv.Ammo[altCal] end
 	end
 
 	return 0
@@ -120,17 +109,6 @@ function ENT:UpdateTurretPose(gunner)
 	self:SetPoseParameter("yaw", targetYaw)
 end
 
-hook.Add("CalcMainActivity", "StationaryGun_Base_Anim", function(ply)
-	local gun = ply:GetNWEntity("ActiveStationaryGun")
-	if IsValid(gun) then
-		local seq = ply:LookupSequence("cidle_dual")
-		if seq and seq > 0 then
-			return ACT_STAND, seq
-		end
-		return ACT_HL2MP_IDLE_DUAL, -1
-	end
-end)
-
 hook.Add("StartCommand", "StationaryGun_Base_ControlOverride", function(ply, cmd)
 	local gun = ply:GetNWEntity("ActiveStationaryGun")
 	if IsValid(gun) then
@@ -138,14 +116,6 @@ hook.Add("StartCommand", "StationaryGun_Base_ControlOverride", function(ply, cmd
 		if IsValid(wep) then
 			wep:SetNextPrimaryFire(CurTime() + 0.5)
 			wep:SetNextSecondaryFire(CurTime() + 0.5)
-		end
-
-		cmd:ClearMovement()
-
-		if cmd:KeyDown(IN_JUMP) then
-			if SERVER then
-				gun:ReleaseGunner()
-			end
 		end
 	end
 end)

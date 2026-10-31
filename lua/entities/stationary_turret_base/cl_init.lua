@@ -147,9 +147,18 @@ function ENT:Think()
 	return true
 end
 
+local aimFraction = 0
+
 hook.Add("CalcView", "StationaryGun_MountedView", function(ply, pos, angles, fov)
 	local gun = ply:GetNWEntity("ActiveStationaryGun")
-	if not IsValid(gun) then return end
+	if not IsValid(gun) then
+		aimFraction = 0
+		return
+	end
+
+	local isAiming = ply:KeyDown(IN_ATTACK2) or input.IsMouseDown(MOUSE_RIGHT)
+	local dt = FrameTime() > 0 and FrameTime() or RealFrameTime()
+	aimFraction = Lerp(math.Clamp(dt * 8, 0, 1), aimFraction, isAiming and 1 or 0)
 
 	local attView = gun:GetAttachment(gun:LookupAttachment("view"))
 	local sightPos = attView and attView.Pos or gun:LocalToWorld(gun.SightOffset or Vector(-10, 0, 18))
@@ -157,52 +166,12 @@ hook.Add("CalcView", "StationaryGun_MountedView", function(ply, pos, angles, fov
 
 	local view = {}
 	view.angles = plyAngles
-
-	if ply:KeyDown(IN_ATTACK2) then
-		view.origin = sightPos
-		view.fov = 55
-	else
-		view.origin = sightPos - plyAngles:Forward() * 18 + Vector(0, 0, 4)
-		view.fov = fov
-	end
-
-	local shootTime = gun.LastShootTime or 0
-	local shootDiff = CurTime() - shootTime
-	if shootDiff < 0.18 then
-		local factor = 1 - (shootDiff / 0.18)
-		view.origin = view.origin - plyAngles:Forward() * (factor * (gun.ViewKickBack or 3.5))
-		view.angles.p = view.angles.p - factor * (gun.ViewKickPitch or 1.6)
-	end
+	view.origin = LerpVector(aimFraction, pos, sightPos)
+	view.fov = Lerp(aimFraction, fov, 55)
+	view.drawviewer = true
 
 	return view
 end)
-
-surface.CreateFont("StationaryGunAmmoFont", {
-	font = "Bahnschrift",
-	size = ScreenScale(16),
-	extended = true,
-	weight = 500,
-	antialias = true
-})
-
-local function DrawBullet(matIcon, x, y, size, cColor)
-	render.PushFilterMin(TEXFILTER.ANISOTROPIC)
-	render.PushFilterMag(TEXFILTER.ANISOTROPIC)
-	surface.SetDrawColor(cColor)
-	surface.SetMaterial(matIcon)
-	surface.DrawTexturedRect(x - size * 0.5, y - size, size, size)
-	render.PopFilterMag()
-	render.PopFilterMin()
-end
-
-local LerpFT_Local = function(speed, from, to)
-	return Lerp(math.Clamp(FrameTime() * speed * 30, 0, 1), from, to)
-end
-
-local lastShoot, lastShootFor, ammoCheck, ammoLongCheck, lerpAmmoCheck = 0, 0, 0, 0, 0
-local WhiteColor = Color(200, 200, 200, 255)
-local color_bg = Color(0, 0, 0, 150)
-local coloruse = Color(255, 255, 255, 255)
 
 surface.CreateFont("StationaryGun_AmmoFont", {font = "Bahnschrift", size = ScreenScale(15), weight = 500})
 

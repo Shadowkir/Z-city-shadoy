@@ -69,7 +69,6 @@ function ENT:Use(ply)
 	if not IsValid(ply) or not ply:IsPlayer() or not ply:Alive() then return end
 
 	local gunner = self:GetGunner()
-
 	if IsValid(gunner) then
 		if gunner == ply then
 			self:ReleaseGunner()
@@ -81,9 +80,11 @@ function ENT:Use(ply)
 	local toPly = (ply:GetPos() - self:GetPos()):GetNormalized()
 	if forward:Dot(toPly) > -0.2 then return end
 
+	local handlePos = self:LocalToWorld(self.GunnerOffset or Vector(-38, 0, 0))
+	if ply:GetPos():DistToSqr(handlePos) > (65 * 65) then return end
+
 	self:SetGunner(ply)
 	ply:SetNWEntity("ActiveStationaryGun", self)
-	ply:SetCollisionGroup(COLLISION_GROUP_PASSABLE_DOOR)
 
 	self:EmitSound(self.SoundMount, 65, 100)
 end
@@ -93,24 +94,9 @@ function ENT:ReleaseGunner()
 	if not IsValid(gunner) then return end
 
 	self:CancelReload()
-
 	gunner:SetNWEntity("ActiveStationaryGun", NULL)
-	gunner:SetCollisionGroup(COLLISION_GROUP_PLAYER)
-
-	local exitPos = self:LocalToWorld(self.ExitOffset or Vector(-70, 0, 5))
-	local tr = util.TraceHull({
-		start = exitPos + Vector(0, 0, 20),
-		endpos = exitPos,
-		mins = Vector(-16, -16, 0),
-		maxs = Vector(16, 16, 72),
-		filter = {self, gunner}
-	})
-
-	gunner:SetPos(tr.HitPos)
-	gunner:DropToFloor()
-	gunner:SetVelocity(Vector(0, 0, 0))
-
 	self:SetGunner(NULL)
+
 	self:EmitSound(self.SoundDismount, 65, 100)
 end
 
@@ -147,12 +133,7 @@ function ENT:FireGunBullet(gunner)
 	local att = self:GetAttachment(muzzleAtt)
 	local shootOrigin = att and att.Pos or self:LocalToWorld(Vector(65, 0, 16))
 
-	local trAim = util.TraceLine({
-		start = gunner:EyePos(),
-		endpos = gunner:EyePos() + gunner:EyeAngles():Forward() * 32768,
-		filter = {self, gunner}
-	})
-	local shootDir = (trAim.HitPos - shootOrigin):GetNormalized()
+	local shootDir = att and att.Ang:Forward() or self:GetForward()
 	local bulletSpeed = self.BulletSpeed or 820
 
 	local bulletData = {
@@ -259,7 +240,9 @@ function ENT:Think()
 	local gunner = self:GetGunner()
 
 	if IsValid(gunner) then
-		if not gunner:Alive() or (gunner.organism and gunner.organism.otrub) or self:GetPos():DistToSqr(gunner:GetPos()) > (85 * 85) then
+		local handlePos = self:LocalToWorld(self.GunnerOffset or Vector(-38, 0, 0))
+
+		if not gunner:Alive() or (gunner.organism and gunner.organism.otrub) or gunner:GetPos():DistToSqr(handlePos) > (65 * 65) then
 			self:CancelReload()
 			self:ReleaseGunner()
 			return
@@ -268,9 +251,6 @@ function ENT:Think()
 		if gunner.organism then
 			gunner.organism.adrenaline = 0
 		end
-
-		local backPos = self:LocalToWorld(self.GunnerOffset or Vector(-40, 0, 0))
-		gunner:SetPos(Vector(backPos.x, backPos.y, gunner:GetPos().z))
 
 		self:UpdateTurretPose(gunner)
 
