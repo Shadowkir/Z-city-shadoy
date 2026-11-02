@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 ENT.Type = "anim"
 ENT.Base = "stationary_turret_base"
-ENT.PrintName = "Корд 6П50 (12.7мм)"
+ENT.PrintName = "Корд"
 ENT.Author = "Shermann Wolf & Degtyarev plant"
 ENT.Category = "Zcity Stationary Machine Guns"
 ENT.Spawnable = true

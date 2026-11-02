@@ -81,7 +81,7 @@ function ENT:Use(ply)
 	if forward:Dot(toPly) > -0.2 then return end
 
 	local handlePos = self:LocalToWorld(self.GunnerOffset or Vector(-38, 0, 0))
-	if ply:GetPos():DistToSqr(handlePos) > (65 * 65) then return end
+	if ply:GetPos():DistToSqr(handlePos) > (25 * 25) then return end
 
 	self:SetGunner(ply)
 	ply:SetNWEntity("ActiveStationaryGun", self)
@@ -242,7 +242,7 @@ function ENT:Think()
 	if IsValid(gunner) then
 		local handlePos = self:LocalToWorld(self.GunnerOffset or Vector(-38, 0, 0))
 
-		if not gunner:Alive() or (gunner.organism and gunner.organism.otrub) or gunner:GetPos():DistToSqr(handlePos) > (65 * 65) then
+		if not gunner:Alive() or (gunner.organism and gunner.organism.otrub) or gunner:GetPos():DistToSqr(handlePos) > (25 * 25) then
 			self:CancelReload()
 			self:ReleaseGunner()
 			return
