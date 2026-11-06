@@ -175,6 +175,7 @@ function SWEP:Initialize()
 	self.AmmoTypes = self.AmmoTypes2[self.Primary.Ammo]
 
 	self:WorldModel_Transform()
+
 	--юзлик тут насрач клиентам был жесткий
 	if not table.HasValue(hg.weapons, self) then table.insert(hg.weapons, self) end
 	self.ishgweapon = true
@@ -245,7 +246,6 @@ function SWEP:DrawWeaponSelection( x, y, wide, tall, alpha )
 end
 
 if CLIENT then
-
 	hook.Add("OnNetVarSet","weapons-net-var",function(index,key,var)
 		if key == "attachments" then
 			local ent = Entity(index)
@@ -305,6 +305,48 @@ function SWEP:OnRemove()
 	table.RemoveByValue(hg.weapons, self)
 end
 
+local owner
+local CurTime = CurTime
+function SWEP:IsZoom()
+	local owner = self:GetOwner()
+
+	if not self:CanUse() then
+		return false
+	end
+
+	if self:GetButtstockAttack() - CurTime() >= -1 then
+		return false
+	end
+
+	local attacking = owner:IsPlayer() and self:KeyDown(IN_ATTACK2) and not self:IsSprinting()
+	if not attacking then
+		return false
+	end
+
+	local validrag = IsValid(owner.FakeRagdoll)
+
+	if self:IsSprinting() and validrag then
+		return false
+	end
+
+	if owner.suiciding then
+		return false
+	end
+
+	local canzoom = validrag and (self:KeyDown(IN_USE) or hg.RagdollCombatInUse(owner)) or (owner:IsOnGround() or owner:InVehicle())
+
+	if not canzoom then
+		return false
+	end
+
+	local rightarm = owner.organism.rarm and (owner.organism.larm > 0.99 or owner.organism.rarm > 0.99)
+	if owner.organism and (owner.organism.larm and not self:IsPistolHoldType()) and rightarm then
+		return false
+	end
+
+	return true
+end
+
 
 function SWEP:CanUse()
 	local owner = self:GetOwner()
@@ -362,7 +404,7 @@ end
 
 local hg_quietshots = GetConVar("hg_quietshots") or CreateClientConVar("hg_quietshots", "0", true, false, "Toggle quieter gun sounds", 0, 1)
 local hg_gunshotvolume = GetConVar("hg_gunshotvolume") or CreateClientConVar("hg_gunshotvolume", "1", true, false, "Modify volume of gun sounds", 0, 1)
-local hg_oldsights = CreateConVar("hg_oldsights", "1", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Disable camera wobble when aiming")
+local hg_oldsights = CreateConVar("hg_oldsights", "0", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Disable camera wobble when aiming")
 local hg_coolcamera = ConVarExists("hg_coolcamera") and GetConVar("hg_coolcamera") or CreateConVar("hg_coolcamera", 0, FCVAR_ARCHIVE + FCVAR_REPLICATED, "Cool camera movement", 0, 5)
 local hg_coolcameralerpmult = ConVarExists("hg_coolcameralerpmult") and GetConVar("hg_coolcameralerpmult") or CreateConVar("hg_coolcameralerpmult", 1, FCVAR_ARCHIVE + FCVAR_REPLICATED, "Cool camera movement lerp multiplier", 0, 5)
 
@@ -1481,7 +1523,7 @@ hg.postureFuncWorldModel = {
 }
 --]]
 
-local angPosture3 = Angle(60, 10, -25)
+local angPosture3 = Angle(45, 45, -25)
 local angPosture3pistol = Angle(5, 65, 0)
 local angPosture4 = Angle(40, -30, -40)
 local angPosture5 = Angle(5, 5, 0)
@@ -1547,19 +1589,20 @@ hg.postureFunctions2 = {
 		local epicRunY = self.EpicRunPos and self.EpicRunPos[2]
 		local epicRunX = self.EpicRunPos and self.EpicRunPos[1]
 
+		local posturehold = !self:IsSprinting()
 		local running = posturehold or ply:GetVelocity():LengthSqr() > 150 * 150
 		
 		if !running then return end
 
-		local runmul = posturehold and 1 or math.Clamp((ply:GetVelocity():Length() - 150) / 300, 0, 1) * (1 - math.sin((self.reload and (self.reload - CurTime()) / self.StaminaReloadTime or 1) * math.pi))
+		local runmul = (posturehold or ply.posture == 3) and 1 or math.Clamp((ply:GetVelocity():Length() - 150) / ply:GetRunSpeed(), 0, 1) * (1 - math.sin((self.reload and (self.reload - CurTime()) / self.StaminaReloadTime or 1) * math.pi))
 		
 		self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - (3 + (pistolRun and (isLocal and (epicRunZ or (running and 6 or 2)) - 6 or 4) or (isLocal and -2 or -6 + (ply:GetNWFloat("InLegKick", 0) and 5 or 0)) )) * runmul
 		self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - (-7 + (pistolRun and (isLocal and (epicRunY or (running and 6 or 4)) + 3 or 8 + (ply:GetNWFloat("InLegKick", 0) and -5 or 0)) or (isLocal and 8 or 2 + (ply:GetNW2Float("InLegKick", 0) and 8 or 0)) ) + 3 * math.Clamp(-ply:EyeAngles()[1] / 20, self:IsPistolHoldType() and -1 or -1, 0)) * runmul
 		self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + (3 + (pistolRun and (isLocal and (epicRunX or 2) or 0) - 2 or 0)) * runmul
 		
 		if not pistolRun then
-			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -5 * runmul
-			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -1 * runmul
+			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -9 * runmul
+			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -6 * runmul
 			self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + -3 * runmul
 			self.AdditionalAngPreLerp:Add(angPostureHighReady * runmul)
 			if running and (isLocal or SERVER) then
@@ -1570,8 +1613,8 @@ hg.postureFunctions2 = {
 
 		--self.weaponAng:Add((self:IsPistolHoldType() and angPosture7) or (ply:IsFlagSet(FL_ANIMDUCKING) and angPosture8 or angPosture4))
 		self.AdditionalAngPreLerp:Add(((self:IsPistolHoldType() or self.CanEpicRun) and angPosture3pistol or angPosture3) * runmul)
-		
 	end,
+
 	[4] = function(self,ply,force)
 		if self:IsZoom() and not force then return end
 		if self:IsPistolHoldType() then 
@@ -2501,7 +2544,6 @@ end
 --]]
 
 if CLIENT then
-
 	function PrintPosParameters(ent)
 		for i=0, ent:GetNumPoseParameters() - 1 do
 			local min, max = ent:GetPoseParameterRange( i )
