@@ -64,7 +64,6 @@ if not game.IsDedicated() then
 	hg.settings:AddOpt("Server-side settings","hg_furcity", "Furcity")
 	hg.settings:AddOpt("Server-side settings","hg_appearance_access_for_all", "Appearance full access for all", nil, nil, "bool")
 	hg.settings:AddOpt("Server-side settings","hg_healanims", "Heal & food animations")
-	hg.settings:AddOpt("Server-side settings","hg_aimtoshoot", "Toggle DarkRP-like shooting system (aim to shoot): 0 - disabled; 1 - hipfire only; 2 - aiming only", nil, nil, "int")
 	hg.settings:AddOpt("Server-side settings","hg_slings", "Sling system")
 	hg.settings:AddOpt("Server-side settings","hg_allow_gopro", "Allow GoPro-like first-person camera")
 	hg.settings:AddOpt("Server-side settings","hg_allow_gopro_pos", "Allow editing GoPro camera position")

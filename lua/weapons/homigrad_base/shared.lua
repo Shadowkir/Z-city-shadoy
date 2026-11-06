@@ -305,54 +305,6 @@ function SWEP:OnRemove()
 	table.RemoveByValue(hg.weapons, self)
 end
 
-local hg_aimtoshoot = ConVarExists("hg_aimtoshoot") and GetConVar("hg_aimtoshoot") or CreateConVar("hg_aimtoshoot", 0, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Toggle DarkRP-like shooting system (aim to shoot): 0 - disabled; 1 - hipfire only; 2 - aiming only", 0, 2)
-local owner
-local CurTime = CurTime
-function SWEP:IsZoom()
-	local owner = self:GetOwner()
-
-	if not self:CanUse() then
-		return false
-	end
-
-	local aimtoshoot = hg_aimtoshoot:GetInt() == 0 or hg_aimtoshoot:GetInt() == 2 or self:GetNWBool("aiming")
-	if not aimtoshoot then
-		return false
-	end
-
-	if self:GetButtstockAttack() - CurTime() >= -1 then
-		return false
-	end
-
-	local attacking = owner:IsPlayer() and self:KeyDown(IN_ATTACK2) and not self:IsSprinting()
-	if not attacking then
-		return false
-	end
-
-	local validrag = IsValid(owner.FakeRagdoll)
-
-	if self:IsSprinting() and validrag then
-		return false
-	end
-
-	if owner.suiciding then
-		return false
-	end
-
-	local canzoom = validrag and (self:KeyDown(IN_USE) or hg.RagdollCombatInUse(owner)) or (owner:IsOnGround() or owner:InVehicle())
-
-	if not canzoom then
-		return false
-	end
-
-	local rightarm = owner.organism.rarm and (owner.organism.larm > 0.99 or owner.organism.rarm > 0.99)
-	if owner.organism and (owner.organism.larm and not self:IsPistolHoldType()) and rightarm then
-		return false
-	end
-
-	return true
-end
-
 
 function SWEP:CanUse()
 	local owner = self:GetOwner()
@@ -397,13 +349,7 @@ function SWEP:IsSprinting()
 		return true
 	end
 
-	if hg_aimtoshoot:GetInt() > 0 then
-		local sprintCondition = sprinting and isfast
-		local aimCondition = not self:KeyDown(IN_ATTACK2) and not validrag
-		return sprintCondition or aimCondition
-	else
-		return sprinting and isfast and not validrag
-	end
+	return sprinting and isfast and not validrag
 end
 
 function SWEP:IsLocal()
@@ -1601,7 +1547,6 @@ hg.postureFunctions2 = {
 		local epicRunY = self.EpicRunPos and self.EpicRunPos[2]
 		local epicRunX = self.EpicRunPos and self.EpicRunPos[1]
 
-		local posturehold = !self:IsSprinting() or (hg_aimtoshoot:GetInt() >= 1 and not self:GetNWBool("aiming"))
 		local running = posturehold or ply:GetVelocity():LengthSqr() > 150 * 150
 		
 		if !running then return end
