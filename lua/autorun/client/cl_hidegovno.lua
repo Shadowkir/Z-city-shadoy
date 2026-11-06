@@ -1,5 +1,7 @@
 RunConsoleCommand("mp_show_voice_icons", "0")
 
+if engine.ActiveGamemode() == "zcity" then return end
+
 local function ClearVoicePanels()
     if IsValid(g_VoicePanelList) then
         g_VoicePanelList:Clear()
