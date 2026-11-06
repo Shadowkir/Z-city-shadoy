@@ -83,7 +83,7 @@ SWEP.Penetration = 7
 SWEP.WorldPos = Vector(2.2, -0.5, 5)
 SWEP.WorldAng = Angle(0.7, -0.1, 0)
 SWEP.UseCustomWorldModel = true
-SWEP.attPos = Vector(0.4, -0.15, 0)
+SWEP.attPos = Vector(-6.6, -0.15, 0)
 SWEP.attAng = Angle(0, 0.2, 0)
 SWEP.lengthSub = 20
 
