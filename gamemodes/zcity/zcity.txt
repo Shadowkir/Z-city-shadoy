@@ -4,5 +4,6 @@
 	"title"			"ZBox"
 	"maps"			"^hmcd_|^md_|^mu_|^murder_|^zc|^zb"
 	"menusystem"	"1"
+	"workshopid"	"3788255319"
 	"category"		"pvp"
 }
