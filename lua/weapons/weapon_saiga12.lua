@@ -14,9 +14,6 @@ SWEP.WorldModelFake = "models/weapons/arc9_fas/shotguns/saiga.mdl"
 --uncomment for funny
 SWEP.FakePos = Vector(-24, 5, 11.5)
 SWEP.FakeAng = Angle(1.3, 0, 0)
-SWEP.AttachmentPos = Vector(37,-4.5,4.5)
-SWEP.AttachmentAng = Angle(0,0,0)
-SWEP.FakeAttachment = "1"
 SWEP.FakeBodyGroups = "00900080302"
 SWEP.MagIndex = 41
 SWEP.FakeScale = 0.79
@@ -130,14 +127,18 @@ SWEP.WeaponEyeAngles = Angle(0, 0, 0)
 SWEP.punchmul = 4
 SWEP.punchspeed = 0.5
 
+SWEP.FakeAttachment = "muzzle"
+SWEP.AttachmentPos = Vector(1.3, 1.2, -0.3)
+SWEP.AttachmentAng = Angle(0, 0, 0)
+
 SWEP.availableAttachments = {
 	barrel = {
-		["mount"] = Vector(-2.2,-0.2,0),
+		["mount"] = Vector(-1.6,0,0),
 		[1] = {"supressor5", Vector(0,0,0), {}},
 	},
 	sight = {
-		["mountType"] = {"dovetail","picatinny"},
-		["mount"] = { dovetail = Vector(-21, 1.5, 0), picatinny = Vector(-23.5,2.65,0.05)}
+		["mountType"] = {"picatinny"},
+		["mount"] = {picatinny = Vector(-23.5,2.65,0.05)}
 	},
 	mount = {
 		["picatinny"] = {
