@@ -244,8 +244,11 @@ function SWEP:DrawAttachments()
 		if self.availableAttachments.mount then
 			if not self.attachments then return end
 			local data = self.attachments["sight"] and self.attachments["sight"][1] and hg.attachments.sight[self.attachments["sight"][1]] or self.attachments["underbarrel"] and self.attachments["underbarrel"][1] and hg.attachments.underbarrel[self.attachments["underbarrel"][1]]
-			if data then
-				self.attachments.mount = self.availableAttachments.mount[data.mountType]
+			local mountData = data and data.mountType and self.availableAttachments.mount[data.mountType]
+			if mountData then
+				self.attachments.mount = mountData
+			else
+				self.attachments.mount = self.availableAttachments.mount["empty"] or {}
 			end
 		end
 	end
