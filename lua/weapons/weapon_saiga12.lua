@@ -130,7 +130,30 @@ SWEP.WeaponEyeAngles = Angle(0, 0, 0)
 SWEP.punchmul = 4
 SWEP.punchspeed = 0.5
 
-SWEP.availableAttachments = {}
+SWEP.availableAttachments = {
+	barrel = {
+		["mount"] = Vector(-2.2,-0.2,0),
+		[1] = {"supressor5", Vector(0,0,0), {}},
+	},
+	sight = {
+		["mountType"] = {"dovetail","picatinny"},
+		["mount"] = { dovetail = Vector(-21, 1.5, 0), picatinny = Vector(-23.5,2.65,0.05)}
+	},
+	mount = {
+		["picatinny"] = {
+			"mount3",
+			Vector(-20, 0, -1),
+			{},
+			["mountType"] = "picatinny",
+		},
+		["dovetail"] = {
+			"empty",
+			Vector(0, 0, 0),
+			{},
+			["mountType"] = "dovetail",
+		},
+	},
+}
 
 --local to head
 SWEP.RHPos = Vector(3,-5.5,3.5)
