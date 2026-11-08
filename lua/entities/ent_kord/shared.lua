@@ -41,11 +41,11 @@ ENT.SoundReloadEnd  = "weapons/ar2/ar2_reload.wav"
 ENT.SoundMount      = "homigrad/weapons/draw_hmg.mp3"
 ENT.SoundDismount   = "homigrad/weapons/hmg_holster.mp3"
 
-ENT.RecoilPunchPitch = {-4.5, -3.5}
-ENT.RecoilPunchYaw   = {-1.5, 1.5}
+ENT.RecoilPunchPitch = {-2.0, -1.5}
+ENT.RecoilPunchYaw   = {-0.6, 0.6}
 
-ENT.RecoilClimbPitch = {0.75, 1.15}
-ENT.RecoilClimbYaw   = {-0.3, 0.3}
+ENT.RecoilClimbPitch = {0.35, 0.55}
+ENT.RecoilClimbYaw   = {-0.1, 0.1}
 
 ENT.ScreenShakeAmp   = 7.5
 ENT.ScreenShakeDist  = 750
