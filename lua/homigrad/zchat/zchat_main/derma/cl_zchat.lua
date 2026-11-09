@@ -6,11 +6,29 @@ local NoDrop = CreateClientConVar("zchat_dropcharacters", 1, true, false, "Play 
 local ShowTextBoxInactive = CreateClientConVar("zchat_showtextboxinactive", 1, true, false, "Showing your text in textbox while chat is turned off", 0, 1)
 local ShowTimestamps = CreateClientConVar("zchat_showtimestamps", 0, true, false, "Show the time before every chat message", 0, 1)
 local avatar = CreateClientConVar("zchat_avatar", 0, true, false, "Show player avatars next to chat messages", 0, 1)
+local EnableTextEffects = CreateClientConVar("zchat_texteffects", 1, true, false, "Enable gradient and animated text effects", 0, 1)
 local kerambit_gradientR = CreateClientConVar("zchat_accent_r", 247, true, false, "Chat accent red", 0, 255)
 local kerambit_gradientG = CreateClientConVar("zchat_accent_g", 67, true, false, "Chat accent green", 0, 255)
 local kerambit_gradientB = CreateClientConVar("zchat_accent_b", 67, true, false, "Chat accent blue", 0, 255)
 local kerambit_gradientAlpha = CreateClientConVar("zchat_accent_alpha", 100, true, false, "Chat accent opacity", 0, 255)
 local zadniyfonAlpha = CreateClientConVar("zchat_background_alpha", 200, true, false, "Chat background opacity", 0, 255)
+local chatWidth = CreateClientConVar("zchat_width", 30, true, false, "Chat width as a percentage of the screen", 20, 80)
+local chatHeight = CreateClientConVar("zchat_height", 25, true, false, "Chat height as a percentage of the screen", 15, 70)
+
+local ZCHAT_NAME = "AtlaZ chat"
+local ZCHAT_VERSION = "1.2"
+local ZCHAT_DESCRIPTION = "Zchat, inspired by atlas chat"
+
+local FONT_PRESETS = {
+	"Bahnschrift",
+	"Tahoma",
+	"Arial",
+	"Verdana",
+	"Trebuchet MS",
+	"Roboto",
+	"coolvetica rg",
+	"Courier New"
+}
 
 local CHAT_POS_X_COOKIE = "zchat_position_x"
 local CHAT_POS_Y_COOKIE = "zchat_position_y"
@@ -35,7 +53,24 @@ local INLINE_EMOJIS = {
 	{"bomb", "icon16/bomb.png"},
 	{"bug", "icon16/bug.png"},
 	{"rainbow", "icon16/rainbow.png"},
-	{"yuuri1", "sticker/yuuri1.png"},
+	{"joe", "icon16/joe"},
+	{"joe1", "icon16/joe1"},
+	{"joe2", "icon16/joe2"},
+	{"joe3", "icon16/joe3"},
+	{"pluv", "icon16/pluv"},
+	{"pluvnerd", "icon16/pluvnerd"},
+	{"pluvomg", "icon16/pluvomg"},
+	{"pluvsad", "icon16/pluvsad"},
+	{"pluvsnooze", "icon16/pluvsnooze"},
+	{"steamhappy", "icon16/steamhappy"},
+	{"fiyy", "icon16/fiyy"},
+	{"grr", "icon16/grr"},
+	{"scared", "icon16/scared"},
+	{"228", "atlaschat/emoticons/228.png"},
+	{"almaz", "atlaschat/emoticons/almaz.png"},
+	{"gaben", "atlaschat/emoticons/gaben.png"},
+	{"garry", "atlaschat/emoticons/garry.png"},
+	{"overrustle", "atlaschat/emoticons/overrustle.png"}
 }
 
 local EMOJI_MATERIALS = {}
@@ -45,6 +80,33 @@ end
 
 local function EscapeMarkup(text)
 	return tostring(text or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
+end
+
+local function MarkupToPlainText(text)
+	text = tostring(text or "")
+	text = text:gsub("<img=([^,>]+)[^>]*>", function(material)
+		local name = string.StripExtension(material:match("([^/]+)$") or "image")
+		return ":" .. name .. ":"
+	end)
+	text = text:gsub("<avatar=[^>]+>", "[avatar]")
+	text = text:gsub("<[^>]+>", "")
+	text = text:gsub("&lt;", "<"):gsub("&gt;", ">"):gsub("&amp;", "&")
+	return text
+end
+
+local function GetTextURLs(text)
+	local urls = {}
+	local seen = {}
+
+	for url in tostring(text or ""):gmatch("https?://[^%s<>]+") do
+		url = url:gsub("[%)%]%},%.!%?;:]+$", "")
+		if !seen[url] then
+			seen[url] = true
+			urls[#urls + 1] = url
+		end
+	end
+
+	return urls
 end
 
 local function NormalizeSteamID(value)
@@ -82,9 +144,31 @@ local function GradientMarkup(text, fromHex, toHex)
 		result[#result + 1] = string.format("<color=%d,%d,%d>%s</color>", r, g, b, EscapeMarkup(char))
 	end
 
-	return table.concat(result)
+	return "<gradient>" .. table.concat(result) .. "</gradient>"
 end
-local function BuildRichMarkup(text)
+
+local function GetEmojiOnlyCount(text)
+	local emojiCount = 0
+	local remainder = tostring(text or ""):gsub(":([%w_+-]+):", function(name)
+		if !EMOJI_MATERIALS[string.lower(name)] then
+			return ":" .. name .. ":"
+		end
+
+		emojiCount = emojiCount + 1
+		return ""
+	end)
+
+	if emojiCount > 0 and !remainder:find("%S") then
+		return emojiCount
+	end
+
+	return 0
+end
+
+local function BuildRichMarkup(text, emojiOnlySource)
+	local sizeSource = emojiOnlySource == nil and text or emojiOnlySource
+	local emojiCount = GetEmojiOnlyCount(sizeSource)
+	local emojiSize = emojiCount >= 1 and emojiCount <= 3 and math.Round(stemava_razmer * 1.5) or stemava_razmer
 	local replacements = {}
 	local avatarCount = 0
 
@@ -99,13 +183,22 @@ local function BuildRichMarkup(text)
 		return Placeholder(GradientMarkup(contents, fromHex, toHex))
 	end)
 
-	for _, effect in ipairs({"spoiler", "pulse", "rainbow"}) do
+	for _, effect in ipairs({"spoiler", "pulse", "rainbow", "hsv", "flash", "vscan", "hscan", "cflash"}) do
 		local openTag = "<" .. effect .. ">"
 		local closeTag = "</" .. effect .. ">"
 		text = text:gsub(openTag .. "(.-)" .. closeTag, function(contents)
 			return Placeholder(openTag .. EscapeMarkup(contents) .. closeTag)
 		end)
 	end
+
+	text = text:gsub("<reverse>(.-)</reverse>", function(contents)
+		local reversed = {}
+		for index = string.utf8len(contents), 1, -1 do
+			reversed[#reversed + 1] = string.utf8sub(contents, index, index)
+		end
+
+		return Placeholder(EscapeMarkup(table.concat(reversed)))
+	end)
 
 	text = text:gsub("<avatar%s*=%s*([^>]+)>", function(value)
 		local steamID = NormalizeSteamID(value)
@@ -121,7 +214,15 @@ local function BuildRichMarkup(text)
 		local material = EMOJI_MATERIALS[string.lower(name)]
 		if !material then return ":" .. name .. ":" end
 
-		return Placeholder(string.format("<img=%s,18x18>", material))
+		return Placeholder(string.format("<img=%s,%dx%d>", material, emojiSize, emojiSize))
+	end)
+
+	text = text:gsub("(https?://[^%s<>]+)", function(rawURL)
+		local url = rawURL:gsub("[%)%]%},%.!%?;:]+$", "")
+		local suffix = rawURL:sub(#url + 1)
+		if url == "" then return rawURL end
+
+		return Placeholder("<url=" .. url .. ">" .. EscapeMarkup(url) .. "</url>") .. suffix
 	end)
 
 	text = EscapeMarkup(text)
@@ -167,7 +268,7 @@ local function GetStyledSource(text)
 	local source = text:match("^<gradient%s*=%s*#?%x%x%x%x%x%x%s*,%s*#?%x%x%x%x%x%x%s*>(.-)</gradient>$")
 	if source then return source end
 
-	for _, effect in ipairs({"spoiler", "pulse", "rainbow"}) do
+	for _, effect in ipairs({"spoiler", "pulse", "rainbow", "hsv", "flash", "vscan", "hscan", "cflash", "reverse"}) do
 		source = text:match("^<" .. effect .. ">(.-)</" .. effect .. ">$" )
 		if source then return source end
 	end
@@ -237,6 +338,13 @@ local function PaintTextEffectButton(button, w, h, entry, effect)
 	surface.DrawOutlinedRect(0, 0, w, h)
 
 	local text = GetGradientPreview(entry)
+	if effect == "reverse" then
+		local reversed = {}
+		for index = string.utf8len(text), 1, -1 do
+			reversed[#reversed + 1] = string.utf8sub(text, index, index)
+		end
+		text = table.concat(reversed)
+	end
 	surface.SetFont("zChatFont")
 	local textWidth, textHeight = surface.GetTextSize(text)
 	local x = w * 0.5
@@ -265,9 +373,31 @@ local function PaintTextEffectButton(button, w, h, entry, effect)
 		return
 	end
 
+	local previewColor = color_white
+	if effect == "hsv" then
+		previewColor = HSVToColor((CurTime() * 90) % 360, 1, 1)
+	elseif effect == "flash" then
+		local value = 0.35 + math.abs(math.sin(CurTime() * 4)) * 0.65
+		previewColor = Color(255 * value, 70 * value, 70 * value)
+	elseif effect == "cflash" then
+		local fraction = (math.sin(CurTime() * 3) + 1) * 0.5
+		previewColor = Color(Lerp(fraction, 255, 40), Lerp(fraction, 40, 255), Lerp(fraction, 220, 100))
+	end
+
 	local alpha = effect == "pulse" and math.Round(140 + math.sin(CurTime() * 5) * 115) or 255
 	draw.SimpleText(text, "zChatFont", x + 1, y + 1, Color(0, 0, 0, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	draw.SimpleText(text, "zChatFont", x, y, Color(245, 245, 245, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	draw.SimpleText(text, "zChatFont", x, y, Color(previewColor.r, previewColor.g, previewColor.b, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+	if effect == "vscan" then
+		local scanY = ((CurTime() * 1.5) % 1) * h
+		surface.SetDrawColor(255, 70, 70, 180)
+		surface.DrawRect(math.max((w - textWidth) * 0.5, 6), scanY, math.min(textWidth, w - 12), 2)
+	elseif effect == "hscan" then
+		local left = math.max((w - textWidth) * 0.5, 6)
+		local scanX = left + ((CurTime() * 1.5) % 1) * math.min(textWidth, w - 12)
+		surface.SetDrawColor(70, 180, 255, 180)
+		surface.DrawRect(scanX, y - textHeight * 0.5, 2, textHeight)
+	end
 end
 
 local function ApplyGradientToEntry(entry, fromHex, toHex)
@@ -301,6 +431,16 @@ end
 local function PaintMarkupOverride(panel, text, font, x, y, color, alignX, alignY, alpha, block)
 	alpha = alpha or 255
 	local effect = block and block.effect
+	local isURL = block and block.url
+
+	if isURL then
+		color = panel.hoveredURL == block.url and Color(100, 180, 255) or Color(55, 140, 255)
+	end
+
+	if !EnableTextEffects:GetBool() then
+		if effect == "gradient" then color = color_white end
+		effect = nil
+	end
 
 	if effect == "spoiler" then
 		surface.SetFont(font)
@@ -315,6 +455,14 @@ local function PaintMarkupOverride(panel, text, font, x, y, color, alignX, align
 		end
 	elseif effect == "pulse" then
 		alpha = math.Clamp(alpha * (0.55 + math.sin(CurTime() * 5) * 0.45), 20, 255)
+	elseif effect == "hsv" then
+		color = HSVToColor((CurTime() * 90) % 360, 1, 1)
+	elseif effect == "flash" then
+		local value = 0.35 + math.abs(math.sin(CurTime() * 4)) * 0.65
+		color = Color(color.r * value, color.g * value, color.b * value)
+	elseif effect == "cflash" then
+		local fraction = (math.sin(CurTime() * 3) + 1) * 0.5
+		color = Color(Lerp(fraction, 255, 40), Lerp(fraction, 40, 255), Lerp(fraction, 220, 100))
 	elseif effect == "rainbow" then
 		surface.SetFont(font)
 		local drawX = x
@@ -343,10 +491,31 @@ local function PaintMarkupOverride(panel, text, font, x, y, color, alignX, align
 	surface.SetFont(font)
 	surface.DrawText(text)
 
+	if effect == "vscan" or effect == "hscan" then
+		surface.SetFont(font)
+		local textWidth, textHeight = surface.GetTextSize(text)
+		local scanColor = effect == "vscan" and Color(255, 70, 70, math.min(alpha, 190)) or Color(70, 180, 255, math.min(alpha, 190))
+		surface.SetDrawColor(scanColor)
+		if effect == "vscan" then
+			local scanY = y + ((CurTime() * 1.5) % 1) * textHeight
+			surface.DrawRect(x, scanY, textWidth, 2)
+		else
+			local scanX = x + ((CurTime() * 1.5) % 1) * textWidth
+			surface.DrawRect(scanX, y, 2, textHeight)
+		end
+	end
+
 	surface.SetTextPos(x, y)
 	surface.SetTextColor(color.r, color.g, color.b, alpha)
 	surface.SetFont(font)
 	surface.DrawText(text)
+
+	if isURL then
+		surface.SetFont(font)
+		local textWidth, textHeight = surface.GetTextSize(text)
+		surface.SetDrawColor(color.r, color.g, color.b, alpha)
+		surface.DrawRect(x, y + textHeight - 1, textWidth, 1)
+	end
 end
 
 local PANEL = {}
@@ -361,6 +530,69 @@ function PANEL:Init()
 
 	self.yAnim = 5
 	self.inlineAvatars = {}
+	self:SetMouseInputEnabled(true)
+end
+
+function PANEL:OnMousePressed(mouseCode)
+	if !IsValid(hg.chat) or !hg.chat:GetActive() then return end
+
+	if mouseCode == MOUSE_LEFT and self.hoveredURL then
+		gui.OpenURL(self.hoveredURL)
+		return
+	end
+
+	if mouseCode != MOUSE_RIGHT then return end
+
+	local plainText = MarkupToPlainText(self.text)
+	local urls = GetTextURLs(plainText)
+	local menu = DermaMenu()
+
+	menu:AddOption("Copy message", function()
+		SetClipboardText(plainText)
+	end):SetIcon("icon16/page_copy.png")
+
+	menu:AddOption("Copy markup", function()
+		SetClipboardText(self.text)
+	end):SetIcon("icon16/tag_blue.png")
+
+	if #urls > 0 then
+		menu:AddSpacer()
+		for index, url in ipairs(urls) do
+			if index > 5 then break end
+			local label = #url > 64 and url:sub(1, 61) .. "..." or url
+			menu:AddOption("Open " .. label, function()
+				gui.OpenURL(url)
+			end):SetIcon("icon16/world_go.png")
+		end
+	end
+
+	menu:Open()
+end
+
+function PANEL:GetURLAtCursor()
+	if !self.markup then return end
+
+	local mouseX, mouseY = self:LocalCursorPos()
+	for _, block in ipairs(self.markup.blocks or {}) do
+		if !block.url or !block.text then continue end
+
+		local blockHeight = block.height or block.thisY or 0
+		local x = self.textOffset + block.offset.x
+		local y = self.yAnim + (blockHeight - (block.thisY or blockHeight)) + block.offset.y
+		if mouseX >= x and mouseX <= x + (block.thisX or 0)
+			and mouseY >= y and mouseY <= y + (block.thisY or 0) then
+			return block.url
+		end
+	end
+end
+
+function PANEL:Think()
+	if IsValid(hg.chat) and hg.chat:GetActive() then
+		self.hoveredURL = self:GetURLAtCursor()
+		self:SetCursor(self.hoveredURL and "hand" or "arrow")
+	else
+		self.hoveredURL = nil
+	end
 end
 
 function PANEL:ClearInlineAvatars()
@@ -526,8 +758,6 @@ function PANEL:Paint(width, height)
 		newAlpha = self.alpha - (255 - hg.chat.realAlpha)
 	end
 
-	self:UpdateSpoilerHover()
-
 	if IsValid(self.avatar) then
 		self.avatar:SetAlpha(math.Clamp(newAlpha, 0, 255))
 	end
@@ -538,6 +768,11 @@ function PANEL:Paint(width, height)
 		avatar:SetPos(self.textOffset + block.offset.x, self.yAnim + block.offset.y)
 		avatar:SetAlpha(math.Clamp(newAlpha, 0, 255))
 	end
+
+	-- погасшее сообщение (чат закрыт, прошло 20 сек) не видно, а разметка рисовалась каждый кадр
+	if newAlpha <= 0 then return end
+
+	self:UpdateSpoilerHover()
 
 	DisableClipping(true)
 		local chatboxX, chatboxY = hg.chat:GetPos()
@@ -690,6 +925,35 @@ PANEL = {}
 AccessorFunc(PANEL, "bActive", "Active", FORCE_BOOL)
 AccessorFunc(PANEL, "realAlpha", "RealAlpha", FORCE_BOOL)
 
+local function GetConfiguredChatSize()
+	local maxWidth = math.max(ScrW() - 20, 1)
+	local maxHeight = math.max(ScrH() - 40, 1)
+	local minWidth = math.min(320, maxWidth)
+	local minHeight = math.min(160, maxHeight)
+
+	return math.Clamp(math.Round(ScrW() * chatWidth:GetFloat() / 100), minWidth, maxWidth),
+		math.Clamp(math.Round(ScrH() * chatHeight:GetFloat() / 100), minHeight, maxHeight)
+end
+
+function PANEL:ApplyConfiguredSize()
+	local width, height = GetConfiguredChatSize()
+	self:SetSize(width, height)
+
+	local x, y = self:GetPos()
+	self:SetPos(
+		math.Clamp(x, 0, math.max(ScrW() - width, 0)),
+		math.Clamp(y, 0, math.max(ScrH() - height, 0))
+	)
+
+	self:InvalidateLayout(true)
+	if IsValid(self.history) then
+		self.history:InvalidateLayout(true)
+		for _, message in ipairs(self.entries or {}) do
+			if IsValid(message) then message:InvalidateLayout(true) end
+		end
+	end
+end
+
 function PANEL:Init()
 	hg.chat = self
 
@@ -699,7 +963,7 @@ function PANEL:Init()
 	self.alpha = 255
 	self.realAlpha = 255
 
-	self:SetSize(ScrW() * 0.3, ScrH() * 0.25)
+	self:ApplyConfiguredSize()
 
 	local defaultX, defaultY = ScrW() * 0.02, ScrH() * 0.67
 	local savedX = cookie.GetNumber(CHAT_POS_X_COOKIE, defaultX)
@@ -790,7 +1054,24 @@ function PANEL:OpenToolsMenu(anchor)
 		return
 	end
 
-	local frame = vgui.Create("DFrame")
+	local frame
+	local backdrop = vgui.Create("DPanel")
+	self.toolsBackdrop = backdrop
+	backdrop:SetPos(0, 0)
+	backdrop:SetSize(ScrW(), ScrH())
+	backdrop:SetKeyboardInputEnabled(false)
+	backdrop.Paint = function() end
+	backdrop.OnMousePressed = function()
+		if IsValid(frame) then
+			frame:Remove()
+		elseif IsValid(backdrop) then
+			backdrop:Remove()
+		end
+	end
+	backdrop:MakePopup()
+	backdrop:SetKeyboardInputEnabled(false)
+
+	frame = vgui.Create("DFrame")
 	self.toolsFrame = frame
 	frame:SetSize(360, 390)
 	frame:SetTitle("Chat features")
@@ -806,6 +1087,8 @@ function PANEL:OpenToolsMenu(anchor)
 	frame:MakePopup()
 
 	frame.OnRemove = function()
+		if IsValid(backdrop) then backdrop:Remove() end
+
 		if IsValid(self) and self:GetActive() then
 			self.entry:RequestFocus()
 		end
@@ -911,7 +1194,13 @@ function PANEL:OpenToolsMenu(anchor)
 	local effects = {
 		"spoiler",
 		"pulse",
-		"rainbow"
+		"rainbow",
+		"hsv",
+		"flash",
+		"vscan",
+		"hscan",
+		"cflash",
+		"reverse"
 	}
 
 	for _, effect in ipairs(effects) do
@@ -920,6 +1209,7 @@ function PANEL:OpenToolsMenu(anchor)
 		button:DockMargin(0, 0, 0, 7)
 		button:SetTall(42)
 		button:SetText("")
+		button:SetTooltip(effect)
 		button.Paint = function(button, w, h)
 			PaintTextEffectButton(button, w, h, self.entry, effect)
 		end
@@ -971,7 +1261,7 @@ function PANEL:OpenSettings()
 	local frame = vgui.Create("DFrame")
 	self.settingsFrame = frame
 
-	frame:SetSize(430, math.min(650, ScrH() - 80))
+	frame:SetSize(430, math.min(700, ScrH() - 80))
 	frame:Center()
 	frame:SetTitle("Settings")
 	frame:SetDeleteOnClose(true)
@@ -983,20 +1273,48 @@ function PANEL:OpenSettings()
 		end
 	end
 
-	local form = frame:Add("DForm")
-	form:Dock(FILL)
-	form:DockMargin(8, 8, 8, 8)
+	local settingsScroll = frame:Add("DScrollPanel")
+	settingsScroll:Dock(FILL)
+	settingsScroll:DockMargin(8, 8, 8, 8)
+
+	local form = settingsScroll:Add("DForm")
+	form:Dock(TOP)
 	form:SetName("")
 	form:SetHeaderHeight(0)
 	form.Header:SetVisible(false)
+	form:Help("Chat window size")
+	form:NumSlider("Chat width (% of screen)", "zchat_width", 20, 80, 0)
+	form:NumSlider("Chat height (% of screen)", "zchat_height", 15, 70, 0)
+
+	form:Help("Text and messages")
 	form:NumSlider("Font size", "zchat_fontsize", 3, 10, 0)
-	form:TextEntry("Font name", "zchat_font")
+	local fontEntry = form:TextEntry("Font name", "zchat_font")
+	local fontPresets = fontEntry:Add("DButton")
+	fontPresets:Dock(RIGHT)
+	fontPresets:SetWide(24)
+	fontPresets:SetText("▼")
+	fontPresets:SetTooltip("Font presets")
+	fontPresets.DoClick = function(button)
+		local menu = DermaMenu()
+
+		for _, preset in ipairs(FONT_PRESETS) do
+			menu:AddOption(preset, function()
+				fontEntry:SetText(preset)
+				RunConsoleCommand("zchat_font", preset)
+			end)
+		end
+
+		menu:SetMinimumWidth(fontEntry:GetWide())
+		local x, y = fontEntry:LocalToScreen(0, fontEntry:GetTall())
+		menu:Open(x, y)
+	end
 	form:NumSlider("Font weight", "zchat_fontweight", 0, 1000, 0)
 	form:CheckBox("Font antialiasing", "zchat_fontaa")
 	form:CheckBox("Animation for deleted characters", "zchat_dropcharacters")
 	form:CheckBox("Show typed text when chat is closed", "zchat_showtextboxinactive")
 	form:CheckBox("Show message timestamps", "zchat_showtimestamps")
 	form:CheckBox("Show player avatars", "zchat_avatar")
+	form:CheckBox("Enable text effects", "zchat_texteffects")
 	form:Help("Chat window appearance")
 
 	local colorMixer = vgui.Create("DColorMixer")
@@ -1015,13 +1333,16 @@ function PANEL:OpenSettings()
 	form:NumSlider("Accent opacity", "zchat_accent_alpha", 0, 255, 0)
 	form:NumSlider("Background opacity", "zchat_background_alpha", 0, 255, 0)
 
-	local resetAppearance = form:Button("Reset chat appearance")
-	resetAppearance.DoClick = function()
+	local returnDefaults = form:Button("Return default settings")
+	returnDefaults.DoClick = function()
+		RunConsoleCommand("zchat_width", "30")
+		RunConsoleCommand("zchat_height", "25")
 		RunConsoleCommand("zchat_accent_r", "247")
 		RunConsoleCommand("zchat_accent_g", "67")
 		RunConsoleCommand("zchat_accent_b", "67")
 		RunConsoleCommand("zchat_accent_alpha", "100")
 		RunConsoleCommand("zchat_background_alpha", "200")
+		RunConsoleCommand("zchat_texteffects", "1")
 		colorMixer:SetColor(Color(247, 67, 67))
 	end
 
@@ -1031,6 +1352,25 @@ function PANEL:OpenSettings()
 			self:ResetPosition()
 		end
 	end
+
+	local reloadChat = form:Button("Reload chat")
+	reloadChat.DoClick = function()
+		RunConsoleCommand("zchat_reload")
+	end
+
+	form:Help(ZCHAT_NAME .. "  •  Version " .. ZCHAT_VERSION)
+	form:Help(ZCHAT_DESCRIPTION)
+
+	local function SetSettingsTextWhite(panel)
+		if panel.SetDark then panel:SetDark(false) end
+		if panel.SetTextColor then panel:SetTextColor(color_white) end
+
+		for _, child in ipairs(panel:GetChildren()) do
+			SetSettingsTextWhite(child)
+		end
+	end
+
+	SetSettingsTextWhite(form)
 end
 
 local gradient_d = Material("vgui/gradient-d")
@@ -1159,7 +1499,11 @@ function PANEL:AddLine(elements)
 			buffer[#buffer + 1] = BuildRichMarkup(v.text)
 		elseif (isstring(v) and index == #elements and IsValid(CHAT_SPEAKER)) then
 			-- Compatibility with OnPlayerChat hooks that print the player message
-			-- themselves instead of passing zchat.RichText.
+			-- themselves instead of passing zchat.RichText. HGPlayerChat adds a
+			-- leading ": ", which must not make an emoji-only message look mixed.
+			local emojiOnlySource = tostring(v):gsub("^:%s+", "", 1)
+			buffer[#buffer + 1] = BuildRichMarkup(v, emojiOnlySource)
+		elseif isstring(v) then
 			buffer[#buffer + 1] = BuildRichMarkup(v)
 		elseif (type(v) == "IMaterial") then
 			local texture = v:GetName()
@@ -1221,3 +1565,19 @@ cvars.AddChangeCallback("zchat_avatar", function()
 		end
 	end
 end, "ZChatAvatarVisibility")
+
+local function ApplyChatSizeSetting()
+	if !IsValid(hg.chat) then return end
+
+	hg.chat:ApplyConfiguredSize()
+	hg.chat:SavePosition()
+end
+
+cvars.AddChangeCallback("zchat_width", ApplyChatSizeSetting, "ZChatWidth")
+cvars.AddChangeCallback("zchat_height", ApplyChatSizeSetting, "ZChatHeight")
+
+hook.Add("OnScreenSizeChanged", "ZChatScreenSize", function()
+	timer.Simple(0, function()
+		ApplyChatSizeSetting()
+	end)
+end)

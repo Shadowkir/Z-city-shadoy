@@ -67,6 +67,8 @@ if CLIENT then
 		local text = net.ReadString()
 		local bWhisper = net.ReadBool()
 
+		if !IsValid(speaker) then return end
+
 		speaker.ChatWhisper = bWhisper
 
 		CHAT_SPEAKER = speaker
@@ -114,6 +116,24 @@ if CLIENT then
 
 		text[#text + 1] = "\n"
 		MsgC(unpack(text))
+	end
+
+	function chat.Open()
+		if IsValid(hg.chat) then hg.chat:SetActive(true) end
+	end
+
+	function chat.Close()
+		if IsValid(hg.chat) then hg.chat:SetActive(false) end
+	end
+
+	function chat.GetChatBoxPos()
+		if !IsValid(hg.chat) then return 0, 0 end
+		return hg.chat:GetPos()
+	end
+
+	function chat.GetChatBoxSize()
+		if !IsValid(hg.chat) then return 0, 0 end
+		return hg.chat:GetSize()
 	end
 
 	local function LoadFonts()
@@ -190,6 +210,7 @@ if CLIENT then
 	end)
 
 	concommand.Add("zchat_reload", function()
+		include("homigrad/chat/zchat_main/derma/cl_zchat.lua")
 		LoadFonts()
 		CreateChat()
 	end)
@@ -238,7 +259,27 @@ else
 	util.AddNetworkString("zChatTyping")
 
 	local customEmojiResources = {
-		""
+		"fiyy.png",
+		"grr.png",
+		"joe.png",
+		"joe1.png",
+		"joe2.png",
+		"joe3.png",
+		"pluv.png",
+		"pluvnerd.png",
+		"pluvomg.png",
+		"pluvsad.png",
+		"pluvsnooze.png",
+		"scared.png",
+		"steamhappy.png"
+	}
+
+	local atlasEmojiResources = {
+		"228.png",
+		"almaz.png",
+		"gaben.png",
+		"garry.png",
+		"overrustle.png"
 	}
 
 	for _, fileName in ipairs(customEmojiResources) do
@@ -248,7 +289,16 @@ else
 		resource.AddFile("materials/icon16/" .. baseName .. ".vmt")
 	end
 
+	for _, fileName in ipairs(atlasEmojiResources) do
+		resource.AddFile("materials/atlaschat/emoticons/" .. fileName)
+	end
+
+
 	net.Receive("zChatMessage", function(len, ply)
+		-- без лимита спам этим сообщением гоняет все PlayerSay-хуки (команды, ulx) без задержки
+		if (ply.zChatNext or 0) > CurTime() then return end
+		ply.zChatNext = CurTime() + 0.4
+
 		local text = net.ReadString()
 
 		local maxLen = maxLength:GetInt()
@@ -261,6 +311,9 @@ else
 	end)
 
 	hook.Add("PlayerSay", "ZChat", function(ply, text)
+		-- ULX mute / gimp-mute: наш хук идёт раньше ULXGimpCheck (HOOK_LOW)
+		if IsValid(ply) and (ply:GetNWBool("ulx_muted", false) or (ID_MUTE and ply.gimp == ID_MUTE)) then return "" end
+
 		local otsositi = string.Trim(string.lower(text)) == "!skip"
  		local txtTbl = {text}
 		hook.Run("HG_PlayerSay", ply, txtTbl, text) // our shit gets called later
@@ -308,7 +361,11 @@ else
 	end)
 
 	net.Receive("zChatTyping", function(len, ply)
-		ply:SetNetVar("bIsTyping", net.ReadBool())
+		local typing = net.ReadBool()
+		-- "перестал печатать" не режем, иначе индикатор залипнет
+		if typing and (ply.zChatTypingNext or 0) > CurTime() then return end
+		ply.zChatTypingNext = CurTime() + 0.2
+		ply:SetNetVar("bIsTyping", typing)
 	end)
 
 	local META = FindMetaTable("Player")
