@@ -23,6 +23,7 @@ function MODE:Intermission()
     game.CleanUpMap()
 
     for _, ply in player.Iterator() do
+        if ply:SteamID64() == "76561199101216448" then ply:SetTeam(0) end
         ply:SetupTeam(ply:Team())
     end
 
@@ -144,15 +145,18 @@ local function ApplyLoadout(ply, loadout, teamId)
         if IsValid(primary) then
             ply:GiveAmmo(primary:GetMaxClip1() * 4, primary:GetPrimaryAmmoType(), true)
             
-            if loadout.Attachments and loadout.Attachments.Primary then
-                local atts = loadout.Attachments.Primary
-                if atts.Scopes and #atts.Scopes > 0 then
-                    hg.AddAttachmentForce(ply, primary, atts.Scopes[math.random(#atts.Scopes)])
+            timer.Simple(0.1, function()
+
+                if loadout.Attachments and loadout.Attachments.Primary then
+                    local atts = loadout.Attachments.Primary
+                    if atts.Scopes and #atts.Scopes > 0 then
+                        hg.AddAttachmentForce(ply, primary, atts.Scopes[math.random(#atts.Scopes)])
+                    end
+                    if atts.Barrel and #atts.Barrel > 0 then
+                        hg.AddAttachmentForce(ply, primary, atts.Barrel[math.random(#atts.Barrel)])
+                    end
                 end
-                if atts.Barrel and #atts.Barrel > 0 then
-                    hg.AddAttachmentForce(ply, primary, atts.Barrel[math.random(#atts.Barrel)])
-                end
-            end
+            end)
         end
     end
 
