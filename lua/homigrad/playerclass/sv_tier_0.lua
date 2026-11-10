@@ -1,39 +1,27 @@
 local classList = player.classList
 local Player = FindMetaTable("Player")
-
 function Player:SetPlayerClass(value, data)
 	data = data or {}
-	value = value or "none"
 
+	value = value or "none"
 	local old = self.PlayerClassName
 	self.PlayerClassNameOld = old
 	old = classList[old]
 	if old and old.Off then old.Off(self) end
-
 	self.PlayerClassName = value
-	self:SetNWString("Class", value)
-	self:SetNWString("ClassOld", self.PlayerClassNameOld or "")
-
-	if value ~= "none" and value ~= "" then
-		self:SetSubMaterial()              
-		self:SetNetVar("Accessories", "") 
-	else
-		if hg and hg.Appearance and hg.Appearance.ForceApplyAppearance and self.CachedAppearance then
-			hg.Appearance.ForceApplyAppearance(self, self.CachedAppearance, false)
-		end
-	end
-
-	self:PlayerClassEvent("On", data)
-
+	self:PlayerClassEvent("On", data) -- WHO WRITE THIS SHIT
 	net.Start("setupclass")
 		net.WriteEntity(self)
 		net.WriteString(value)
 		net.WriteString(self.PlayerClassNameOld or "")
 		net.WriteTable(data)
 	net.Broadcast()
+	--if self:Alive() then
+	--	hg.FakeUp(self, true, true)
+	--end
 end
 
-function Player:GiveSwep(list, mulClip1)
+function Player:GiveSwep(list, mulClip1) -- улучшенный tdm.GiveSwep
 	if not list then return end
 	local wep = self:Give(type(list) == "table" and list[math.random(#list)] or list)
 	mulClip1 = mulClip1 or 3
@@ -46,20 +34,18 @@ end
 util.AddNetworkString("setupclass")
 hook.Add("PlayerInitializeSpawn", "PlayerClass", function(plySend)
 	for i, ply in player.Iterator() do
-		local cls = ply.PlayerClassName
-		if not cls or cls == "none" or cls == "" then continue end
+		if not ply:GetPlayerClass() then continue end
 		net.Start("setupclass")
 		net.WriteEntity(ply)
-		net.WriteString(cls)
-		net.WriteString(ply.PlayerClassNameOld or "")
-		net.WriteTable({})
+		net.WriteString(ply:GetNWString("Class"))
+		net.WriteString(ply:GetNWString("ClassOld"))
 		net.Send(plySend)
 	end
 end)
 
 hook.Add("PostPostPlayerDeath", "PlayerClass", function(ply, ragdoll)
 	ply:PlayerClassEvent("PlayerDeath")
-	ply:SetPlayerClass("none")
+	ply:SetPlayerClass()
 end)
 
 hook.Add("Player Think", "ClassPlyThink", function(ply, time, dtime)
@@ -78,7 +64,7 @@ COMMANDS.playerclass = {
 		else
 			for i, ply2 in pairs(player.GetListByName(plya)) do
 				ply2:SetPlayerClass(class)
-				ply2:ChatPrint(ply2:Name())
+				ply:ChatPrint(ply2:Name())
 			end
 		end
 	end,
