@@ -138,12 +138,12 @@ SWEP.availableAttachments = {
 	},
 	sight = {
 		["mountType"] = {"picatinny"},
-		["mount"] = {picatinny = Vector(-23.5,2.65,0.05)}
+		["mount"] = {picatinny = Vector(-22.1,2.65,0.05)}
 	},
 	mount = {
 		["picatinny"] = {
 			"mount3",
-			Vector(-20, 0, -1),
+			Vector(-19, 0.3, -1),
 			{},
 			["mountType"] = "picatinny",
 		},
