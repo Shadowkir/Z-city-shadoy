@@ -396,10 +396,13 @@ function hg.DrawSettings(ParentPanel)
     contentPanel.Paint = function() end
     -- 🥴 <- лучший смайлик
 
-    local currentTab = categories[1] or ""
+    local initialTab = (hg.settings.LastTab and table.HasValue(categories, hg.settings.LastTab)) and hg.settings.LastTab or categories[1] or ""
+    local currentTab = initialTab
 
     local function OpenCategory(catName)
         currentTab = catName
+        hg.settings.LastTab = catName
+
         contentPanel:Clear()
         contentPanel:SetAlpha(0)
         contentPanel:AlphaTo(255, 0.15, 0)
@@ -459,10 +462,18 @@ function hg.DrawSettings(ParentPanel)
         end
 
         scroller:AddPanel(tabBtn)
+
+        if catName == initialTab then
+            timer.Simple(0, function()
+                if IsValid(scroller) and IsValid(tabBtn) then
+                    scroller:ScrollToChild(tabBtn)
+                end
+            end)
+        end
     end
 
-    if categories[1] then
-        OpenCategory(categories[1])
+    if initialTab ~= "" then
+        OpenCategory(initialTab)
     end
 
     local stickerSize = ScreenScale(45)
