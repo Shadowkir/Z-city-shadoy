@@ -1,6 +1,6 @@
 hg = hg or {}
-hg.Version = "Release 1.4.2"
-hg.GitHub_ReposOwner = "shadowkir"
+hg.Version = "Release 1.4.3"
+hg.GitHub_ReposOwner = "Shadowkir"
 hg.GitHub_ReposName = "Z-city-shadoy"
 
 local sides = {
