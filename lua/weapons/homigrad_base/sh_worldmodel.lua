@@ -10,14 +10,16 @@ function SWEP:ShouldUseFakeModel()
 	return self.WorldModelFake// and IsValid(self:GetOwner())
 end
 
-if SERVER then
-	concommand.Add("hg_holster", function(ply)
-		if not IsValid(ply) then return end
-		local cur = ply:GetNWInt("hg_holster_style", 1)
-		local nxt = (cur == 1 and 2) or 1
-		ply:SetNWInt("hg_holster_style", nxt)
-	end)
-end
+concommand.Add("hg_holster", function(ply)
+	if CLIENT then
+		local cv = GetConVar("hg_holster_style")
+		if cv then
+			cv:SetInt(cv:GetInt() == 1 and 0 or 1)
+		end
+	elseif IsValid(ply) then
+		ply:ConCommand("hg_holster")
+	end
+end)
 
 SWEP.weaponAng = Angle(0, 0, 0)
 local angZero = Angle(0, 0, 0)
@@ -158,6 +160,7 @@ function SWEP:RestedAnim(pos, ang, dtime)
 end
 
 local hg_gary = CreateClientConVar("hg_gary", "0", false, true, "Center weapon in fake", 0, 1)
+local hg_holster_style = CreateClientConVar("hg_holster_style", "0", true, true, "Holster weapon on chest instead of back", 0, 1)
 
 function SWEP:PosAngChanges(ply, desiredPos, desiredAng, bNoAdditional, closeanim, dtime)
 	desiredPos = desiredPos or vecZero
@@ -730,8 +733,12 @@ function SWEP:WorldModel_Transform_Holstered()
 
 		if isPistol or self.ForceHolsterStyle == 2 then
 			style = 2
-		elseif IsValid(realPly) and realPly.GetNWInt then
-			style = realPly:GetNWInt("hg_holster_style", 1)
+		elseif IsValid(realPly) then
+			if realPly.GetInfoNum and realPly:GetInfoNum("hg_holster_style", 0) == 1 then
+				style = 2
+			elseif realPly.GetNWInt and realPly:GetNWInt("hg_holster_style", 1) == 2 then
+				style = 2
+			end
 		end
 
 		if style ~= 2 then style = 1 end
