@@ -1,3 +1,4 @@
+//BY RENCH
 // v7 privet
 local hook_Run = hook.Run
 hook.Add( "OnPlayerChat", "HGPlayerChat", function( ply, strText, bTeam, bDead, bWhisper ) 

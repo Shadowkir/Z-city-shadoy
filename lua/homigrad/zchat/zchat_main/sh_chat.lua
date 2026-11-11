@@ -1,3 +1,4 @@
+//BY RENCH
 -- ЭТО ПЕРЕДЕЛКА ЧАТА ЭТО САЛАТА, ДА ТУТ ЕСТЬ ЧУТ ЧУТ ИИ ПОТОМУ ЧТО РЕНЧ ТУПОЙ В ПРОГРАМИРОВАНИИ
 local maxLength = CreateConVar("zchat_maxmessagelength", "256", {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Maximum message length allowed")
 
