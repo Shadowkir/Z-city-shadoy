@@ -5,10 +5,12 @@ function hg.settings:AddOpt( strCategory, strConVar, strTitle, bDecimals, bStrin
     self.tbl[strCategory] = self.tbl[strCategory] or {}
     self.tbl[strCategory][strConVar] = { strCategory, strConVar, strTitle, bDecimals or false, bString or false, category }
 end
+
 local hg_firstperson_death = CreateClientConVar("hg_firstperson_death", "0", true, false, "Toggle first-person death camera view", 0, 1)
 local hg_font = CreateClientConVar("hg_font", "Bahnschrift", true, false, "change every text font to selected because ui customization is cool")
 local hg_attachment_draw_distance = CreateClientConVar("hg_attachment_draw_distance", 0, true, nil, "distance to draw attachments", 0, 4096)
 local hg_holster_style = CreateClientConVar("hg_holster_style", "0", true, true, "Holster weapon on chest instead of back", 0, 1)
+local hg_ui_sticker = CreateClientConVar("hg_ui_sticker", "0", true, false, "Show Yuuri in settings menu", 0, 1)
 
 xbars = 17
 ybars = 30
@@ -46,7 +48,6 @@ surface.CreateFont("ZCity_setiings_category", {
 	size = ScreenScale(15),
 	weight = 100
 })
-
 
 hg.settings:AddOpt("Gameplay","hg_old_notificate", "Old Notifications")
 hg.settings:AddOpt("Gameplay","hg_cheats", "Enable Cheats")
@@ -96,6 +97,7 @@ hg.settings:AddOpt("Blood","hg_blood_sprites", "Blood Sprites (DISABLED FOR EVER
 hg.settings:AddOpt("Blood","hg_old_blood", "Old blood")
 
 hg.settings:AddOpt("UI","hg_font", "Set Custom Font", false, true)
+hg.settings:AddOpt("UI","hg_ui_sticker", "Yuuri")
 
 hg.settings:AddOpt("Weapons","hg_weaponshotblur_enable", "Shooting Blur")
 hg.settings:AddOpt("Weapons","hg_dynamic_mags", "Dynamic Ammo Inspect")
@@ -116,23 +118,25 @@ hg.settings:AddOpt("View","hg_leancam_mul", "Lean camera mul", true, nil, "int")
 hg.settings:AddOpt("View","hg_gun_cam", "Gun camera (WIP Admin only)")
 --hg_hints
 --hg_leancam_mul
-  --hg_newfakecam
+--hg_newfakecam
+
 hg.settings:AddOpt("Sound","hg_dmusic", "Dynamic Music")
 hg.settings:AddOpt("Sound","hg_quietshots", "Enable/Disable Quietshoot Sounds")
-
 
 function hg.CreateCategory(ctgName, ParentPanel, yPos)
     local pppanel = vgui.Create('DPanel', ParentPanel)
     pppanel:SetSize(ParentPanel:GetWide() / 1.05, ParentPanel:GetTall() * 0.07)
-    pppanel:SetPos(ParentPanel:GetWide() / 2 -pppanel:GetWide() / 2, yPos)
+    pppanel:SetPos(ParentPanel:GetWide() / 2 - pppanel:GetWide() / 2, yPos)
     --pppanel:SetText(ctgName)
+    local clr_title = Color(220, 220, 220, 220)
+
     pppanel.Paint = function(self,w,h)
         surface.SetDrawColor(60,60,60,145)
         surface.DrawRect(0, 0, w, h)
 		surface.SetDrawColor(42, 42, 42, 184)
 		surface.DrawRect(0, h-5, w, 5)
     
-        draw.SimpleText(ctgName, 'ZCity_setiings_category', w / 2, h / 2, color3, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(ctgName, 'ZCity_setiings_category', w / 2, h / 2, clr_title, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
     
     return pppanel
@@ -158,14 +162,10 @@ function hg.GetConVarType(convar)
 end
 
 local function SetConVarValue(convar, value)
-    if not convar then
-        return
-    end
+    if not convar then return end
 
     local name = convar.GetName and convar:GetName()
-    if not name or name == "" then
-        return
-    end
+    if not name or name == "" then return end
 
     if isbool(value) then
         RunConsoleCommand(name, value and "1" or "0")
@@ -183,6 +183,7 @@ local clr_5 = Color(30, 29, 29, 30)
 local clr_6 = Color(255, 255, 255, 100)
 local clr_7 = Color(255, 255, 255, 200)
 local clr_8 = Color(70, 130, 180)
+
 function hg.CreateButton(buttonData, convarName, ParentPanel, yPos)
     local convar = GetConVar(convarName)
 
@@ -190,28 +191,26 @@ function hg.CreateButton(buttonData, convarName, ParentPanel, yPos)
         return 
     end
     local pppanel = vgui.Create('DPanel', ParentPanel)
-    pppanel:SetSize(ParentPanel:GetWide()/1.05, ParentPanel:GetTall()/15)
+    pppanel:SetSize(ParentPanel:GetWide()/1.05, math.max(ParentPanel:GetTall()/15, 38))
     pppanel:SetPos(ParentPanel:GetWide()/2-pppanel:GetWide()/2, yPos)
     
     surface.SetFont('ZCity_setiings_fine')
     local width2, height2 = surface.GetTextSize(buttonData[3])
     
-    convarType = buttonData[6] or hg.GetConVarType(convar)
+    local convarType = buttonData[6] or hg.GetConVarType(convar)
     pppanel.Paint = function(self,w,h)
         surface.SetDrawColor(43, 43, 43,145)
         surface.DrawRect(0, 0, w, h)
 		surface.SetDrawColor(47, 47, 47,145)
 		surface.DrawRect(0, h-3, w, 3)
         
-        draw.SimpleText(buttonData[3], 'ZCity_setiings_fine', 30, h / 2 -height2/2.5, clr_1, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-        draw.SimpleText(convar:GetHelpText(), 'ZCity_setiings_tiny', 30, h / 2+height2/2, clr_2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(buttonData[3], 'ZCity_setiings_fine', 30, h / 2 - height2/2.5, clr_1, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+        draw.SimpleText(convar:GetHelpText(), 'ZCity_setiings_tiny', 30, h / 2 + height2/2, clr_2, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
     end
 
     if convarType == 'bool' then
         local toggle = vgui.Create('DButton', pppanel)
         toggle:SetSize(pppanel:GetWide() / 18, pppanel:GetTall() / 2)
-
-        
         toggle:SetPos(pppanel:GetWide() - toggle:GetWide()*1.4 - pppanel:GetWide() / 20, pppanel:GetTall() / 2 - toggle:GetTall() / 2)
         toggle:SetText('')
         
@@ -242,8 +241,6 @@ function hg.CreateButton(buttonData, convarName, ParentPanel, yPos)
             draw.RoundedBox(0, slPos, 6, slsize, slsize, bgColor)
             surface.SetDrawColor(shadowColor)
             surface.DrawRect(slPos, slsize+4, slsize, 3)
-    
-            surface.SetDrawColor(clr_6)
         end
         
         function toggle:DoClick()
@@ -298,7 +295,6 @@ function hg.CreateButton(buttonData, convarName, ParentPanel, yPos)
         textEntry:SetUpdateOnType(true) 
         textEntry:SetFont('ZCity_Tiny')
         
-    
         textEntry.Paint = function(self, w, h)
             surface.SetDrawColor(30, 30, 30, 255)
             surface.DrawRect(0, 0, w, h)
@@ -318,10 +314,11 @@ function hg.CreateButton(buttonData, convarName, ParentPanel, yPos)
     return pppanel
 end
 
+local kartinko = Material("sticker/yuuri1.png", "smooth")
+
 function hg.DrawSettings(ParentPanel)
     ParentPanel:SetAlpha(0)
     ParentPanel.Paint = function(self,w,h)
-
         surface.SetDrawColor(28,28,28,255)
         surface.DrawRect(0, 0, w, h)
 
@@ -344,27 +341,159 @@ function hg.DrawSettings(ParentPanel)
         surface.SetDrawColor(28,28,28,208)
         surface.DrawRect(0, 0, w, h)
     end
+
     hg.DrawBlur(ParentPanel, 5)
-    ParentPanel:AlphaTo(255,0.15,0)
-    local pppanel3 = vgui.Create('DScrollPanel', ParentPanel)
-    pppanel3:SetSize(ParentPanel:GetWide(), ParentPanel:GetTall())
-    pppanel3:SetPos(0,0)
-    --pppanel3:SetAlpha(0)
-    pppanel3.Paint = function()end
-    -- 🥴 <- лучший смайлик
+    ParentPanel:AlphaTo(255, 0.15, 0)
 
-    local yOffset = pppanel3:GetTall()/100
+    local tabOrder = {
+        "Gameplay",
+        "Weapons",
+        "View",
+        "Sound",
+        "Optimization",
+        "Blood",
+        "UI",
+        "Server-side settings",
+        "Debug"
+    }
 
-    for categoryName, categoryTable in pairs(hg.settings.tbl) do
-        local category = hg.CreateCategory(categoryName, pppanel3, yOffset)
-        yOffset = yOffset + category:GetTall() + 12
-        for convarName, settingData in pairs(categoryTable) do
-            local vbv = hg.CreateButton(settingData,convarName,pppanel3,yOffset)
-            if not vbv then continue end
-            yOffset = yOffset + (vbv:GetTall()) + 12
+    local categories = {}
+    for _, name in ipairs(tabOrder) do
+        if hg.settings.tbl[name] then
+            table.insert(categories, name)
         end
     end
-    local pppanel23 = vgui.Create('DPanel', pppanel3)
-    pppanel23:SetSize(0, 0)
-    pppanel23:SetPos(0,yOffset+12)
+    for name, _ in pairs(hg.settings.tbl) do
+        if not table.HasValue(categories, name) then
+            table.insert(categories, name)
+        end
+    end
+
+    local tabH = ScreenScale(18)
+    local tabMargin = ScreenScale(8)
+
+    local scroller = vgui.Create("DHorizontalScroller", ParentPanel)
+    scroller:SetPos(tabMargin, tabMargin)
+    scroller:SetSize(ParentPanel:GetWide() - tabMargin * 2, tabH)
+    scroller:SetOverlap(-ScreenScale(3))
+
+    if IsValid(scroller.btnLeft) then
+        scroller.btnLeft.Paint = function(s, w, h)
+            draw.SimpleText("<", "ZCity_setiings_fine", w/2, h/2, s:IsHovered() and Color(192,0,0) or clr_1, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+    end
+    if IsValid(scroller.btnRight) then
+        scroller.btnRight.Paint = function(s, w, h)
+            draw.SimpleText(">", "ZCity_setiings_fine", w/2, h/2, s:IsHovered() and Color(192,0,0) or clr_1, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+    end
+
+    local contentY = tabMargin + tabH + ScreenScale(6)
+    local contentPanel = vgui.Create("DScrollPanel", ParentPanel)
+    contentPanel:SetPos(0, contentY)
+    contentPanel:SetSize(ParentPanel:GetWide(), ParentPanel:GetTall() - contentY - tabMargin)
+    --pppanel3:SetAlpha(0)
+    contentPanel.Paint = function() end
+    -- 🥴 <- лучший смайлик
+
+    local currentTab = categories[1] or ""
+
+    local function OpenCategory(catName)
+        currentTab = catName
+        contentPanel:Clear()
+        contentPanel:SetAlpha(0)
+        contentPanel:AlphaTo(255, 0.15, 0)
+
+        local catTable = hg.settings.tbl[catName]
+        if not catTable then return end
+
+        local yOffset = 10
+        local header = hg.CreateCategory(catName, contentPanel, yOffset)
+        yOffset = yOffset + header:GetTall() + 10
+
+        for convarName, settingData in pairs(catTable) do
+            local btn = hg.CreateButton(settingData, convarName, contentPanel, yOffset)
+            if btn then
+                yOffset = yOffset + btn:GetTall() + 10
+            end
+        end
+
+        local spacer = vgui.Create("DPanel", contentPanel)
+        spacer:SetSize(0, 0)
+        spacer:SetPos(0, yOffset + 10)
+    end
+
+    for _, catName in ipairs(categories) do
+        local tabBtn = vgui.Create("DButton")
+        surface.SetFont("ZCity_setiings_fine")
+        local tw, _ = surface.GetTextSize(catName)
+        tabBtn:SetSize(tw + ScreenScale(16), tabH)
+        tabBtn:SetText("")
+        tabBtn.HoverLerp = 0
+
+        tabBtn.Paint = function(s, w, h)
+            local isSelected = (currentTab == catName)
+            local isHovered = s:IsHovered()
+            s.HoverLerp = Lerp(FrameTime() * 10, s.HoverLerp, (isSelected or isHovered) and 1 or 0)
+
+            local bgAlpha = Lerp(s.HoverLerp, 70, 160)
+            surface.SetDrawColor(38, 38, 38, bgAlpha)
+            surface.DrawRect(0, 0, w, h)
+
+            if isSelected then
+                surface.SetDrawColor(192, 0, 0, 240)
+                surface.DrawRect(0, h - 3, w, 3)
+            elseif s.HoverLerp > 0.05 then
+                surface.SetDrawColor(120, 120, 120, 150 * s.HoverLerp)
+                surface.DrawRect(0, h - 2, w, 2)
+            end
+
+            local textColor = isSelected and Color(255, 255, 255) or Color(170 + 70 * s.HoverLerp, 170 + 70 * s.HoverLerp, 170 + 70 * s.HoverLerp)
+            draw.SimpleText(catName, "ZCity_setiings_fine", w / 2, h / 2, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+
+        tabBtn.DoClick = function()
+            if currentTab == catName then return end
+            surface.PlaySound("shitty/tap_depress.wav")
+            OpenCategory(catName)
+        end
+
+        scroller:AddPanel(tabBtn)
+    end
+
+    if categories[1] then
+        OpenCategory(categories[1])
+    end
+
+    local stickerSize = ScreenScale(45)
+    local stickerBtn = vgui.Create("DButton", ParentPanel)
+    stickerBtn:SetSize(stickerSize, stickerSize)
+    stickerBtn:SetText("")
+
+    local baseX = ParentPanel:GetWide() - stickerSize - ScreenScale(18)
+    local baseY = ParentPanel:GetTall() - stickerSize - ScreenScale(18)
+    stickerBtn:SetPos(baseX, baseY)
+
+    stickerBtn.Think = function(self)
+        local active = hg_ui_sticker:GetBool()
+        self:SetMouseInputEnabled(active)
+        if not active then return end
+
+        local t = CurTime() * 2
+        local offX = math.sin(t) * ScreenScale(7)
+        local offY = math.cos(t * 1.5) * ScreenScale(4)
+        self:SetPos(baseX + offX, baseY + offY)
+    end
+
+    stickerBtn.Paint = function(self, w, h)
+        if not hg_ui_sticker:GetBool() then return end
+        surface.SetDrawColor(255, 255, 255, 255)
+        surface.SetMaterial(kartinko)
+        surface.DrawTexturedRect(0, 0, w, h)
+    end
+
+    stickerBtn.DoClick = function()
+        if not hg_ui_sticker:GetBool() then return end
+        surface.PlaySound("Chito.mp3")
+    end
 end
