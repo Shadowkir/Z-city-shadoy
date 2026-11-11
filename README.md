@@ -10,7 +10,7 @@
 
 ## 🔗 Полезное
 
-- **[коллекция аддонов](https://steamcommunity.com/sharedfiles/filedetails/?id=3657285193)**
+- **[коллекция аддонов](https://steamcommunity.com/sharedfiles/filedetails/?id=3785165044)**
 
 в будущем сборку я не смогу поддерживать так как она не в форке з сити....
 
