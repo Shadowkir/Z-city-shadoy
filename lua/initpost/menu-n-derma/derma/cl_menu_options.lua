@@ -493,18 +493,41 @@ function hg.DrawSettings(ParentPanel)
         local t = CurTime() * 2
         local offX = math.sin(t) * ScreenScale(7)
         local offY = math.cos(t * 1.5) * ScreenScale(4)
-        self:SetPos(baseX + offX, baseY + offY)
+
+        local jumpY = 0
+        local timeSince = CurTime() - (self.ClickTime or 0)
+        if timeSince < 0.45 then
+            local p = timeSince / 0.45
+            jumpY = -math.sin(p * math.pi) * ScreenScale(14)
+        end
+
+        self:SetPos(baseX + offX, baseY + offY + jumpY)
     end
 
     stickerBtn.Paint = function(self, w, h)
         if not hg_ui_sticker:GetBool() then return end
+
+        local timeSince = CurTime() - (self.ClickTime or 0)
+        local scaleX = 1
+        local scaleY = 1
+        local angle = 0
+
+        if timeSince < 0.45 then
+            local p = timeSince / 0.45
+            local stretch = math.sin(p * math.pi)
+            scaleX = 1 - stretch * 0.12
+            scaleY = 1 + stretch * 0.22
+            angle = math.sin(p * math.pi * 2) * (1 - p) * 12
+        end
+
         surface.SetDrawColor(255, 255, 255, 255)
         surface.SetMaterial(kartinko)
-        surface.DrawTexturedRect(0, 0, w, h)
+        surface.DrawTexturedRectRotated(w / 2, h / 2, w * scaleX, h * scaleY, angle)
     end
 
-    stickerBtn.DoClick = function()
+    stickerBtn.DoClick = function(self)
         if not hg_ui_sticker:GetBool() then return end
+        self.ClickTime = CurTime()
         surface.PlaySound("Chito.mp3")
     end
 end
