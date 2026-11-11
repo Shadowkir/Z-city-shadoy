@@ -217,6 +217,12 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	oldzoom = zooming
 
 	if LocalPlayer():IsAdmin() and hg_gun_cam:GetBool() then
+		local zoom = self:IsZoom() and (IsValid(ply.FakeRagdoll) or ((self.lerpaddcloseanim * self.closeanimdis) < 3)) and (self:GetNetVar("shootgunReload", 0) < CurTime())
+		self.k = Lerp(self.Ergonomics * FrameTime() * 2, self.k or 0, zoom and 1 or 0)
+		if self.deploy or self.holster then self.k = 0 end
+		self.shot = LerpFT(0.1, self.shot or 0, 0)
+		self.shot2 = LerpFT(0.1, self.shot2 or 0, 0)
+
 		view.origin = posZoom
 		view.angles = angPos
 		view.angles:RotateAroundAxis(view.angles:Right(), self.GunCamAng and self.GunCamAng[1] or 90)

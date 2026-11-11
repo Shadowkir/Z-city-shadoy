@@ -54,6 +54,15 @@ local IsValid, math_Clamp = IsValid, math.Clamp
 	local vector_small = Vector(0.01, 0.01, 0.01)
 	local angfuck = Angle()
 
+	local function IsGunCam()
+		if not CLIENT then return false end
+		local cv = GetConVar("hg_gun_cam")
+		if not (cv and cv:GetBool() and IsValid(lply) and lply:IsAdmin()) then return false end
+
+		local wep = lply:GetActiveWeapon()
+		return IsValid(wep) and wep.GetZoomPos and true or false
+	end
+
 	function DrawPlayerRagdoll(ent, ply) --// actually not only ragdoll render but player too
 		if ply.prevragdoll_index != nil and ply.prevragdoll_index != ply.ragdoll_index and ply.ragdoll_index == 0 then
 			//print(ply.ragdoll_index, ply.prevragdoll_index, Entity(ply.ragdoll_index))
@@ -105,7 +114,7 @@ local IsValid, math_Clamp = IsValid, math.Clamp
 
 		--local current = ent:GetManipulateBoneScale(lkp)
 		local fountains = GetNetVar("fountains") or {}
-		local wawanted = (GetViewEntity() != ply) and !fountains[ent] and (!(!lply:Alive() and lply:GetNWEntity("spect") == ply and viewmode == 1) and !(hg_firstperson_death:GetBool() and follow == ent)) and vector_full or vector_small
+		local wawanted = ((GetViewEntity() != ply) or IsGunCam()) and !fountains[ent] and (!(!lply:Alive() and lply:GetNWEntity("spect") == ply and viewmode == 1) and !(hg_firstperson_death:GetBool() and follow == ent)) and vector_full or vector_small
 		--print(ent, wawanted, GetViewEntity(), ply, (GetViewEntity() != ply), !fountains[ent], !(!lply:Alive() and lply:GetNWEntity("spect") == ply and viewmode == 1))
 		--if !current:IsEqualTol(wawanted, 0.01) then
 			--ent:ManipulateBoneScale(lkp, wawanted)

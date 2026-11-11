@@ -73,6 +73,26 @@ local whitelist = {
 
 local islply
 
+local function IsExternalCamera()
+    if not CLIENT then return false end
+    local lp = LocalPlayer()
+    if not IsValid(lp) then return false end
+
+    local gunCam = GetConVar("hg_gun_cam")
+    if lp:IsAdmin() and gunCam and gunCam:GetBool() then
+        local wep = lp:GetActiveWeapon()
+        if IsValid(wep) and wep.GetZoomPos then return true end
+    end
+
+    local thirdperson = GetConVar("hg_thirdperson")
+    if thirdperson and thirdperson:GetBool() then return true end
+
+    local gopro = GetConVar("hg_gopro")
+    if gopro and gopro:GetBool() then return true end
+
+    return false
+end
+
 local hg_firstperson_death = ConVarExists("hg_firstperson_death") and GetConVar("hg_firstperson_death") or CreateClientConVar("hg_firstperson_death", "0", "first person death", true, false, 0, 1)
 
 function RenderAccessories(ply, accessories, setup)
@@ -86,7 +106,7 @@ function RenderAccessories(ply, accessories, setup)
 	local ent = IsValid(ply.FakeRagdoll) and ply.FakeRagdoll or ply
 	ent = IsValid(ply.OldRagdoll) and ply.OldRagdoll:IsRagdoll() and ply.OldRagdoll or ent
 
-	islply = ((ply:IsRagdoll() and hg.RagdollOwner(ply)) or ply) == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and GetViewEntity() == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer()))
+	islply = ((ply:IsRagdoll() and hg.RagdollOwner(ply)) or ply) == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and GetViewEntity() == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and not IsExternalCamera()
 	
 	local fountains = GetNetVar("fountains") or {}
 	if ent == follow and hg_firstperson_death:GetBool() and !fountains[ent] then islply = true end
@@ -407,7 +427,7 @@ function CoolRenderAccessories(ply, accessories)
 
 	local ent = IsValid(ply.FakeRagdoll) and ply.FakeRagdoll or ply
 
-	islply = ((ply:IsRagdoll() and hg.RagdollOwner(ply)) or ply) == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and GetViewEntity() == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer()))
+	islply = ((ply:IsRagdoll() and hg.RagdollOwner(ply)) or ply) == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and GetViewEntity() == (LocalPlayer():Alive() and LocalPlayer() or LocalPlayer():GetNWEntity("spect",LocalPlayer())) and not IsExternalCamera()
 
 	if islply and IsValid(wep) and whitelist[wep:GetClass()] then
 		if not ent.modelAccess then return end
