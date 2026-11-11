@@ -257,7 +257,7 @@ local Approach = math.Approach
 local gear, rpm, clutch, isRedlining, transmissionRPM, maxRPM
 local throttle, gearTorque, availableTorque
 
-local glide_fuelsystem = CreateConVar("glide_fuelsystem", "0", FCVAR_ARCHIVE + FCVAR_NOTIFY, "Toggle fuel system for glide vehicles", 0, 1)
+local glide_fuelsystem = CreateConVar("glide_fuelsystem", "1", FCVAR_NOTIFY, "Toggle fuel system for glide vehicles", 0, 1)
 
 function ENT:EngineThink( dt )
     gear = self:GetGear()
@@ -447,14 +447,18 @@ function ENT:EngineThink( dt )
         self:SetIsRedlining( isRedlining and inputThrottle > 0 )
     end
 
+if glide_fuelsystem:GetBool() then
     local fuel = self:GetFuel()
 
     if fuel <= 0 then
         self:TurnOff()
     else
-        fuel = fuel - ((rpm / 7000) * dt) * (glide_fuelsystem:GetBool() and 1 or 0)
+        fuel = fuel - ((rpm / 7000) * dt)
         self:SetFuel(math.max(fuel, 0))
     end
+else
+    self:SetFuel(self:GetMaxFuel() or 100)
+end
 end
 
 local ExpDecay = Glide.ExpDecay
