@@ -74,6 +74,7 @@ if not game.IsDedicated() then
 	hg.settings:AddOpt("Server-side settings","hg_coolhands", "Give cool hands instead of default hands on spawn")
     hg.settings:AddOpt("Server-side settings","homicide_traitoramount", "Homicide: Traitor Amount", nil, nil, "int")
 	hg.settings:AddOpt("Server-side settings","hg_random_atts", "Give random atts")
+	hg.settings:AddOpt("Server-side settings","glide_fuelsystem", "Glide fuel system", nil, nil, "bool")
 end
 --hg_appearance_access_for_all
 --hg_furcity

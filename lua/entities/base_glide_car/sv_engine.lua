@@ -257,7 +257,7 @@ local Approach = math.Approach
 local gear, rpm, clutch, isRedlining, transmissionRPM, maxRPM
 local throttle, gearTorque, availableTorque
 
-local glide_fuelsystem = CreateConVar("glide_fuelsystem", "1", FCVAR_NOTIFY, "Toggle fuel system for glide vehicles", 0, 1)
+local glide_fuelsystem = CreateConVar("glide_fuelsystem", "1", bit.bor(FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_ARCHIVE), "Toggle fuel system for glide vehicles", 0, 1)
 
 function ENT:EngineThink( dt )
     gear = self:GetGear()
