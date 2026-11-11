@@ -1539,6 +1539,10 @@ local posLegkick = Vector(12,-8,1)
 local angRunning = Angle(20,10,0)
 local angPostureHighReady = Angle(-30,-25,30)
 
+local angSprint = Angle(60, 10, -25)
+local angSprintPistol = Angle(5, 65, 0)
+local angSprintHighReady = Angle(-30, -25, 30)
+
 hg.postureFunctions2 = {
 	[1] = function(self,ply)
 		if self:IsZoom() then return end
@@ -1589,32 +1593,49 @@ hg.postureFunctions2 = {
 		local epicRunY = self.EpicRunPos and self.EpicRunPos[2]
 		local epicRunX = self.EpicRunPos and self.EpicRunPos[1]
 
-		local posturehold = !self:IsSprinting()
-		local running = posturehold or ply:GetVelocity():LengthSqr() > 150 * 150
+		self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - (3 + (pistolRun and (isLocal and (epicRunZ or 2) - 6 or 4) or (isLocal and -2 or -6 + (ply:GetNWFloat("InLegKick", 0) and 5 or 0)) ))
+		self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - (-7 + (pistolRun and (isLocal and (epicRunY or 4) + 3 or 8 + (ply:GetNWFloat("InLegKick", 0) and -5 or 0)) or (isLocal and 8 or 2 + (ply:GetNW2Float("InLegKick", 0) and 8 or 0)) ) + 3 * math.Clamp(-ply:EyeAngles()[1] / 20, self:IsPistolHoldType() and -1 or -1, 0))
+		self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + (3 + (pistolRun and (isLocal and (epicRunX or 2) or 0) - 2 or 0))
 		
-		if !running then return end
+		if not pistolRun then
+			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -9
+			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -6
+			self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + -3
+			self.AdditionalAngPreLerp:Add(angPostureHighReady)
+		end
 
-		local runmul = (posturehold or ply.posture == 3) and 1 or math.Clamp((ply:GetVelocity():Length() - 150) / ply:GetRunSpeed(), 0, 1) * (1 - math.sin((self.reload and (self.reload - CurTime()) / self.StaminaReloadTime or 1) * math.pi))
+		--self.weaponAng:Add((self:IsPistolHoldType() and angPosture7) or (ply:IsFlagSet(FL_ANIMDUCKING) and angPosture8 or angPosture4))
+		self.AdditionalAngPreLerp:Add(((self:IsPistolHoldType() or self.CanEpicRun) and angPosture3pistol or angPosture3))
+	end,
+	["sprint"] = function(self,ply,force)
+		if self:IsZoom() and not force then return end
+		local isLocal = true--self:IsLocal2()
+		local pistolRun = self:IsPistolHoldType() or self.CanEpicRun
+
+		local epicRunZ = self.EpicRunPos and self.EpicRunPos[3]
+		local epicRunY = self.EpicRunPos and self.EpicRunPos[2]
+		local epicRunX = self.EpicRunPos and self.EpicRunPos[1]
+
+		local runmul = math.Clamp((ply:GetVelocity():Length() - 150) / ply:GetRunSpeed(), 0, 1) * (1 - math.sin((self.reload and (self.reload - CurTime()) / self.StaminaReloadTime or 1) * math.pi))
 		
-		self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - (3 + (pistolRun and (isLocal and (epicRunZ or (running and 6 or 2)) - 6 or 4) or (isLocal and -2 or -6 + (ply:GetNWFloat("InLegKick", 0) and 5 or 0)) )) * runmul
-		self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - (-7 + (pistolRun and (isLocal and (epicRunY or (running and 6 or 4)) + 3 or 8 + (ply:GetNWFloat("InLegKick", 0) and -5 or 0)) or (isLocal and 8 or 2 + (ply:GetNW2Float("InLegKick", 0) and 8 or 0)) ) + 3 * math.Clamp(-ply:EyeAngles()[1] / 20, self:IsPistolHoldType() and -1 or -1, 0)) * runmul
+		self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] - (3 + (pistolRun and (isLocal and (epicRunZ or 6) - 6 or 4) or (isLocal and -2 or -6 + (ply:GetNWFloat("InLegKick", 0) and 5 or 0)) )) * runmul
+		self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] - (-7 + (pistolRun and (isLocal and (epicRunY or 6) + 3 or 8 + (ply:GetNWFloat("InLegKick", 0) and -5 or 0)) or (isLocal and 8 or 2 + (ply:GetNW2Float("InLegKick", 0) and 8 or 0)) ) + 3 * math.Clamp(-ply:EyeAngles()[1] / 20, self:IsPistolHoldType() and -1 or -1, 0)) * runmul
 		self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + (3 + (pistolRun and (isLocal and (epicRunX or 2) or 0) - 2 or 0)) * runmul
 		
 		if not pistolRun then
-			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -9 * runmul
-			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -6 * runmul
+			self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + -5 * runmul
+			self.AdditionalPosPreLerp[2] = self.AdditionalPosPreLerp[2] + -1 * runmul
 			self.AdditionalPosPreLerp[3] = self.AdditionalPosPreLerp[3] + -3 * runmul
-			self.AdditionalAngPreLerp:Add(angPostureHighReady * runmul)
-			if running and (isLocal or SERVER) then
+			self.AdditionalAngPreLerp:Add(angSprintHighReady * runmul)
+			if isLocal or SERVER then
 				self.AdditionalPosPreLerp[1] = self.AdditionalPosPreLerp[1] + 4 * runmul
 				self.AdditionalAngPreLerp:Add(angRunning * runmul)
 			end
 		end
 
 		--self.weaponAng:Add((self:IsPistolHoldType() and angPosture7) or (ply:IsFlagSet(FL_ANIMDUCKING) and angPosture8 or angPosture4))
-		self.AdditionalAngPreLerp:Add(((self:IsPistolHoldType() or self.CanEpicRun) and angPosture3pistol or angPosture3) * runmul)
+		self.AdditionalAngPreLerp:Add(((self:IsPistolHoldType() or self.CanEpicRun) and angSprintPistol or angSprint) * runmul)
 	end,
-
 	[4] = function(self,ply,force)
 		if self:IsZoom() and not force then return end
 		if self:IsPistolHoldType() then 
@@ -1822,9 +1843,12 @@ function SWEP:GetAdditionalValues()
 		self.zoomingBigSnd = false
 	end
 
-	local posture = ((animpos < 0.2 and self:IsSprinting()) or animpos > (self:IsPistolHoldType() and 0.5 or 0.2)) and (self:IsPistolHoldType() and 3 or 4) or ply.posture
+	local activePosture = ply.posture
+	if (self:IsSprinting() or huya) and (self:GetButtstockAttack() - CurTime() < -1) then
+		activePosture = "sprint"
+	end
 
-	local func = hg.postureFunctions2[(self:IsSprinting() or huya) and (self:GetButtstockAttack() - CurTime() < -1) and ((ply.posture == 3 and 3) or (ply.posture == 3 and 3) or (self:IsPistolHoldType() and 3 or 3)) or ply.posture] or funcNil
+	local func = hg.postureFunctions2[activePosture] or funcNil
 	func = ply:GetNWFloat("InLegKick", 0) > CurTime() and hg.postureFunctions2["legkicking"] or func
 	if not self.inspect then
 		func(self, ply, huya)
