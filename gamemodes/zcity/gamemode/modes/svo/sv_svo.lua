@@ -145,20 +145,17 @@ local function ApplyLoadout(ply, loadout, teamId)
         if IsValid(primary) then
             ply:GiveAmmo(primary:GetMaxClip1() * 4, primary:GetPrimaryAmmoType(), true)
             
-            timer.Simple(0.1, function()
-
-                if loadout.Attachments and loadout.Attachments.Primary then
-                    local atts = loadout.Attachments.Primary
-                    if atts.Scopes and #atts.Scopes > 0 then
-                        hg.AddAttachmentForce(ply, primary, atts.Scopes[math.random(#atts.Scopes)])
-                    end
-                    if atts.Barrel and #atts.Barrel > 0 then
-                        hg.AddAttachmentForce(ply, primary, atts.Barrel[math.random(#atts.Barrel)])
+            if loadout.Attachments and loadout.Attachments.Primary then
+                local atts = loadout.Attachments.Primary
+                if atts.Scopes and #atts.Scopes > 0 then
+                    hg.AddAttachmentForce(ply, primary, atts.Scopes[math.random(#atts.Scopes)])
+                end
+                if atts.Barrel and #atts.Barrel > 0 then
+                    hg.AddAttachmentForce(ply, primary, atts.Barrel[math.random(#atts.Barrel)])
                     end
                 end
-            end)
+            end
         end
-    end
 
     if loadout.Secondary then
         local sec = ply:Give(loadout.Secondary)

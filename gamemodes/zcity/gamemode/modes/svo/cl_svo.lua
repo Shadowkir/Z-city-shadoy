@@ -116,6 +116,12 @@ local function OpenEndMenu()
     scroll:SetPos(10, 70)
     scroll:SetSize(sizeX - 20, sizeY - 80)
 
+    function scroll:Paint(w, h)
+        BlurBackground(self)
+        surface.SetDrawColor(colDarkGreen)
+        surface.DrawOutlinedRect(0, 0, w, h, 2.5)
+    end
+
     for _, ply in player.Iterator() do
         if ply:Team() == TEAM_SPECTATOR then continue end
 
